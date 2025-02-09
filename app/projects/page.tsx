@@ -39,10 +39,12 @@ export default function Home() {
   );
 
   const router = useRouter();
-  const { updateFrameSettings } = useFrameSettings();
+  const { updateFrameSettings, updateCurrentFrameSettings } =
+    useFrameSettings();
 
   const onProjectClick = (frame: FrameSettings) => {
     updateFrameSettings(frame);
+    updateCurrentFrameSettings(frame);
     router.push("/frame-settings");
   };
 
@@ -57,7 +59,11 @@ export default function Home() {
             {frames.length === 0 && <div>Nothing to see here.</div>}
             {frames.length > 0 &&
               frames.map((frame, i) => (
-                <Card key={i} onClick={() => onProjectClick(frame)}>
+                <Card
+                  key={i}
+                  onClick={() => onProjectClick(frame)}
+                  className="cursor-pointer"
+                >
                   <CardHeader>
                     <CardTitle>{frame.documentName ?? "(no name)"}</CardTitle>
                     <CardDescription>Last modified: asdasd</CardDescription>

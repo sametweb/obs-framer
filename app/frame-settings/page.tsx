@@ -1,4 +1,5 @@
 "use client";
+import Preview from "@/components/Canvas/Preview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,39 +13,18 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { useFrameSettings } from "@/contexts/FrameSettingsContext";
-import localStorageService from "@/lib/localStorageService";
-import { deepCompare } from "@/lib/utils";
-import clsx from "clsx";
-import {
-  ArrowLeftRight,
-  Check,
-  Download,
-  Edit,
-  Plus,
-  Save,
-  Trash2,
-} from "lucide-react";
-import {
-  FocusEventHandler,
-  KeyboardEventHandler,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { v4 } from "uuid";
+import { ArrowLeftRight, Plus, Trash2 } from "lucide-react";
 import { commonResolutions, directions, FrameSettings } from "./constants";
 import {
   getGradientStyle,
   GradientStop,
   LinearGradientSettings,
-  renderCanvas,
 } from "./utils";
 
 export default function Home() {
-  const { frameSettings, updateFrameSettings: updateGlobalFrameSettings } =
+  const { currentFrameSettings, updateCurrentFrameSettings } =
     useFrameSettings();
-  const [currentFrameSettings, setCurrentFrameSettings] =
-    useState<FrameSettings>(frameSettings);
+
   const {
     frameBottomWidth,
     frameCount,
@@ -56,21 +36,10 @@ export default function Home() {
     frameRightWidth,
     frameSpacing,
     frameTopWidth,
-    screenHeight,
-    screenWidth,
-    documentName,
   } = currentFrameSettings;
 
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const editableTitleRef = useRef<HTMLHeadingElement>(null);
-
   const updateFrameSettings = (newSettings: Partial<FrameSettings>) => {
-    setCurrentFrameSettings((currentSettings) => ({
-      ...currentSettings,
-      ...newSettings,
-    }));
+    updateCurrentFrameSettings(newSettings);
   };
 
   const swapFrameLeftAndRight = () => {
@@ -101,69 +70,6 @@ export default function Home() {
     }
   };
 
-  const handleSaveTitle: FocusEventHandler<HTMLHeadingElement> = (e) => {
-    if (editableTitleRef.current != null) {
-      const newDocumentName = e.target.textContent ?? "";
-      if (newDocumentName != documentName) {
-        updateFrameSettings({ documentName: newDocumentName });
-      } else {
-        onSaveTitle();
-      }
-    }
-  };
-
-  const handleOnKeyDownWhenEditingTitle: KeyboardEventHandler<
-    HTMLHeadingElement
-  > = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      onSaveTitle();
-      editableTitleRef.current?.blur();
-    }
-  };
-
-  const onSaveTitle = () => {
-    setIsEditingTitle(false);
-  };
-
-  const onEditTitle = () => {
-    setIsEditingTitle(true);
-
-    editableTitleRef.current?.focus();
-    // Move cursor to the end of the text.
-    const range = document.createRange();
-    range.selectNodeContents(editableTitleRef.current!);
-    range.collapse(false); // Collapse to the end
-    const selection = window.getSelection();
-    selection!.removeAllRanges();
-    selection!.addRange(range);
-  };
-
-  const handleDownloadCanvas = () => {
-    if (canvasRef.current !== null) {
-      const dataURL = canvasRef.current.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.href = dataURL;
-      link.download = "canvas_image.png";
-      link.style.display = "none";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  };
-
-  const handleSave = () => {
-    if (localStorageService.getItem<FrameSettings[]>("frames") == null) {
-      localStorageService.setItem("frames", []);
-    }
-
-    if (currentFrameSettings.id.length == 0) {
-      currentFrameSettings.id = v4();
-    }
-    updateGlobalFrameSettings(currentFrameSettings);
-    localStorageService.addItemToArray("frames", currentFrameSettings);
-  };
-
   const updateFrameGradientStops = (stops: GradientStop[]) => {
     updateFrameSettings({
       frameGradient: { ...frameGradient, stops },
@@ -171,7 +77,7 @@ export default function Home() {
   };
 
   const addStop = () => {
-    const newStops = [...currentFrameSettings.frameGradient.stops];
+    const newStops = [...frameGradient.stops];
     const lastOffset = newStops[newStops.length - 1]?.offset || 0;
     const newOffset = Math.min(lastOffset + 0.1, 1);
     newStops.push({ offset: newOffset, color: "#ffffff" });
@@ -203,23 +109,6 @@ export default function Home() {
     });
 
   const isSolidColor = frameGradient.stops.length === 1;
-  const hasUnsavedChanges = !deepCompare(frameSettings, currentFrameSettings);
-
-  useEffect(() => {
-    renderCanvas(canvasRef, currentFrameSettings);
-  }, [
-    screenWidth,
-    screenHeight,
-    frameLeftWidth,
-    frameRightWidth,
-    frameBottomWidth,
-    frameTopWidth,
-    frameSpacing,
-    frameRadius,
-    frameGradient,
-    frameCount,
-    currentFrameSettings,
-  ]);
 
   return (
     <div className="flex h-screen">
@@ -513,63 +402,7 @@ export default function Home() {
           </div>
         </ScrollArea>
       </aside>
-
-      {/* Main content area */}
-      <main className="flex-1 p-6 bg-background">
-        <div className="max-w-screen-xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex gap-2 items-center">
-              <h2
-                ref={editableTitleRef}
-                className={clsx("text-lg", "font-semibold", "p-2", {
-                  "bg-red-50": isEditingTitle,
-                })}
-                contentEditable
-                suppressContentEditableWarning
-                onFocus={(_) => setIsEditingTitle(true)}
-                onBlur={handleSaveTitle}
-                onKeyDown={handleOnKeyDownWhenEditingTitle}
-              >
-                {documentName}
-              </h2>
-              {isEditingTitle ? (
-                <Check
-                  size={16}
-                  onClick={onSaveTitle}
-                  className="cursor-pointer"
-                />
-              ) : (
-                <Edit
-                  size={16}
-                  onClick={onEditTitle}
-                  className="cursor-pointer"
-                />
-              )}
-              {currentFrameSettings.id}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={handleSave}
-                disabled={!hasUnsavedChanges}
-              >
-                {hasUnsavedChanges ? "Save" : "Changes saved"}
-                <Save className="ml-2 h-4 w-4" />
-              </Button>
-              <Button variant="outline" onClick={handleDownloadCanvas}>
-                Download
-                <Download className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <canvas
-            ref={canvasRef}
-            width={screenWidth}
-            height={screenHeight}
-            className="max-w-full h-auto"
-          />
-        </div>
-      </main>
+      <Preview />
     </div>
   );
 }

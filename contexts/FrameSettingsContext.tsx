@@ -9,14 +9,20 @@ import React, { createContext, useContext, useState } from "react";
 
 interface FrameSettingsContextProps {
   frameSettings: FrameSettings;
+  currentFrameSettings: FrameSettings;
   updateFrameSettings: (partialSettings: Partial<FrameSettings>) => void;
+  updateCurrentFrameSettings: (partialSettings: Partial<FrameSettings>) => void;
   isDefaultSettings: boolean;
+  isCurrentFrameSettingsSaved: boolean;
 }
 
 const FrameSettingsContext = createContext<FrameSettingsContextProps>({
   frameSettings: defaultFrameSettings,
+  currentFrameSettings: defaultFrameSettings,
   updateFrameSettings: () => {},
+  updateCurrentFrameSettings: () => {},
   isDefaultSettings: true,
+  isCurrentFrameSettingsSaved: false,
 });
 
 interface FrameSettingsProviderProps {
@@ -29,11 +35,14 @@ const FrameSettingsProvider: React.FC<FrameSettingsProviderProps> = ({
   const [frameSettings, setFrameSettings] =
     useState<FrameSettings>(defaultFrameSettings);
 
-  const _isDefaultSettings = (settings: FrameSettings): boolean => {
-    return deepCompare(settings, defaultFrameSettings);
-  };
+  const [currentFrameSettings, setCurrentFrameSettings] =
+    useState<FrameSettings>(defaultFrameSettings);
 
-  const isDefaultSettings = _isDefaultSettings(frameSettings);
+  const isDefaultSettings = deepCompare(frameSettings, defaultFrameSettings);
+  const isCurrentFrameSettingsSaved = deepCompare(
+    frameSettings,
+    currentFrameSettings
+  );
 
   const updateFrameSettings = (partialSettings: Partial<FrameSettings>) => {
     setFrameSettings((prevSettings) => {
@@ -42,9 +51,25 @@ const FrameSettingsProvider: React.FC<FrameSettingsProviderProps> = ({
     });
   };
 
+  const updateCurrentFrameSettings = (
+    partialSettings: Partial<FrameSettings>
+  ) => {
+    setCurrentFrameSettings((prevSettings) => {
+      const newSettings = { ...prevSettings, ...partialSettings };
+      return newSettings;
+    });
+  };
+
   return (
     <FrameSettingsContext.Provider
-      value={{ frameSettings, updateFrameSettings, isDefaultSettings }}
+      value={{
+        frameSettings,
+        currentFrameSettings,
+        updateFrameSettings,
+        updateCurrentFrameSettings,
+        isDefaultSettings,
+        isCurrentFrameSettingsSaved,
+      }}
     >
       {children}
     </FrameSettingsContext.Provider>
