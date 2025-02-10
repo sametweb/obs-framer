@@ -14,6 +14,7 @@ import {
   LucideProps,
   Proportions,
   Settings,
+  Type,
 } from "lucide-react";
 import Link from "next/link";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
@@ -30,6 +31,7 @@ const navItems: NavItem[] = [
   { icon: Home, label: "Home", path: "/" },
   { icon: FolderOpen, label: "Projects", path: "/projects" },
   { icon: Proportions, label: "Frame settings", path: "/frame-settings" },
+  { icon: Type, label: "Text", path: "/text" },
 ];
 
 const bottomNavItems: NavItem[] = [
