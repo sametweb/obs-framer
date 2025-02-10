@@ -5,16 +5,23 @@ import { FrameSettings } from "./constants";
 export const renderCanvas = (
   canvasRef: RefObject<HTMLCanvasElement>,
   frameSettings: FrameSettings,
-  state: TextEditorState
+  state?: TextEditorState
 ) => {
   const canvas = canvasRef.current;
   if (!canvas) return;
 
-  const ctx = canvas.getContext("2d", { alpha: true });
+  const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
+  // Clear the entire canvas
+  ctx.clearRect(0, 0, frameSettings.screenWidth, frameSettings.screenHeight);
+
+  // Draw the frame gradient background
   fillGradient(frameSettings.frameGradient, ctx, canvas);
   ctx.fillRect(0, 0, frameSettings.screenWidth, frameSettings.screenHeight);
+
+  // Draw the frame (which creates the cutout)
+  ctx.save();
   drawFrame(
     ctx,
     frameSettings.screenWidth,
@@ -29,9 +36,14 @@ export const renderCanvas = (
     frameSettings.frameInnerBorderWidth,
     frameSettings.frameInnerBorderColor
   );
+  ctx.restore();
 
-  if (!state) return;
-  drawText(ctx, state.layers, state.selectedLayerId);
+  // Only draw text if state is provided
+  if (state) {
+    ctx.save();
+    drawText(ctx, state.layers, state.selectedLayerId);
+    ctx.restore();
+  }
 };
 
 export const drawFrame = (
@@ -47,11 +59,10 @@ export const drawFrame = (
   frameCount: number,
   frameBorderWidth: number,
   frameBorderColor: string
-): CanvasRenderingContext2D => {
+) => {
   const totalSpacing = frameSpacing * (frameCount - 1);
   const totalBorders = frameLeftWidth + frameRightWidth;
-  const totalUsableFrameWidth =
-    (frameWidth - totalSpacing - totalBorders) / frameCount;
+  const totalUsableFrameWidth = (frameWidth - totalSpacing - totalBorders) / frameCount;
 
   for (let i = 0; i < frameCount; i++) {
     const offsetX = i * (totalUsableFrameWidth + frameSpacing);
@@ -62,7 +73,6 @@ export const drawFrame = (
     // Carve out the frame
     ctx.globalCompositeOperation = "destination-out";
     ctx.beginPath();
-
     ctx.moveTo(frameLeftWidth, frameTopWidth);
     ctx.arcTo(
       frameLeftWidth + totalUsableFrameWidth,
@@ -92,55 +102,19 @@ export const drawFrame = (
       frameTopWidth,
       frameRadius
     );
-
     ctx.closePath();
     ctx.fill();
 
-    // Draw the border around the carved frame, only if frameBorderWidth > 0
+    // Draw the border around the carved frame
     if (frameBorderWidth > 0) {
-      ctx.globalCompositeOperation = "source-over"; // Reset composite operation
+      ctx.globalCompositeOperation = "source-over";
       ctx.lineWidth = frameBorderWidth;
       ctx.strokeStyle = frameBorderColor;
-      ctx.beginPath(); // Re-use the path
-
-      ctx.moveTo(frameLeftWidth + frameRadius, frameTopWidth);
-      ctx.arcTo(
-        frameLeftWidth + totalUsableFrameWidth,
-        frameTopWidth,
-        frameLeftWidth + totalUsableFrameWidth,
-        frameTopWidth + frameRadius,
-        frameRadius
-      );
-      ctx.arcTo(
-        frameLeftWidth + totalUsableFrameWidth,
-        frameHeight - frameBottomWidth,
-        frameLeftWidth + totalUsableFrameWidth - frameRadius,
-        frameHeight - frameBottomWidth,
-        frameRadius
-      );
-      ctx.arcTo(
-        frameLeftWidth,
-        frameHeight - frameBottomWidth,
-        frameLeftWidth,
-        frameHeight - frameBottomWidth - frameRadius,
-        frameRadius
-      );
-      ctx.arcTo(
-        frameLeftWidth,
-        frameTopWidth,
-        frameLeftWidth + frameRadius,
-        frameTopWidth,
-        frameRadius
-      );
-
-      ctx.closePath();
       ctx.stroke();
     }
 
     ctx.restore();
   }
-
-  return ctx;
 };
 
 export const drawText = (
@@ -148,86 +122,69 @@ export const drawText = (
   layers: TextLayer[],
   selectedLayerId: string | null
 ) => {
-  // Create a temporary canvas for text layers to avoid direct manipulation
-  const textCanvas = document.createElement("canvas");
-  textCanvas.width = ctx.canvas.width;
-  textCanvas.height = ctx.canvas.height;
-  const textCtx = textCanvas.getContext("2d", { alpha: true });
-
-  if (!textCtx) return;
-
-  // Clear the text canvas
-  textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
-
-  // Render each text layer on the temporary canvas
   layers.forEach((layer) => {
-    textCtx.save();
+    ctx.save();
 
     // Set text styles
-    textCtx.font = `${layer.italic ? "italic " : ""}${
-      layer.bold ? "bold " : ""
-    }${layer.fontSize}px ${layer.fontFamily}`;
-    textCtx.fillStyle = layer.color;
+    ctx.font = `${layer.italic ? "italic " : ""}${layer.bold ? "bold " : ""}${layer.fontSize}px ${layer.fontFamily}`;
+    ctx.fillStyle = layer.color;
 
     // Apply effects
     if (layer.effects.shadow.enabled) {
-      textCtx.shadowColor = layer.effects.shadow.color;
-      textCtx.shadowBlur = layer.effects.shadow.blur;
-      textCtx.shadowOffsetX = layer.effects.shadow.offsetX;
-      textCtx.shadowOffsetY = layer.effects.shadow.offsetY;
+      ctx.shadowColor = layer.effects.shadow.color;
+      ctx.shadowBlur = layer.effects.shadow.blur;
+      ctx.shadowOffsetX = layer.effects.shadow.offsetX;
+      ctx.shadowOffsetY = layer.effects.shadow.offsetY;
     }
 
     if (layer.effects.outline.enabled) {
-      textCtx.strokeStyle = layer.effects.outline.color;
-      textCtx.lineWidth = layer.effects.outline.width;
-      textCtx.strokeText(layer.text, layer.x, layer.y);
+      ctx.strokeStyle = layer.effects.outline.color;
+      ctx.lineWidth = layer.effects.outline.width;
+      ctx.strokeText(layer.text, layer.x, layer.y);
     }
 
     // Draw text
-    textCtx.fillText(layer.text, layer.x, layer.y);
+    ctx.fillText(layer.text, layer.x, layer.y);
 
     // Draw underline if enabled
     if (layer.underline) {
-      const metrics = textCtx.measureText(layer.text);
+      const metrics = ctx.measureText(layer.text);
       const lineY = layer.y + 3;
-      textCtx.beginPath();
-      textCtx.moveTo(layer.x, lineY);
-      textCtx.lineTo(layer.x + metrics.width, lineY);
-      textCtx.strokeStyle = layer.color;
-      textCtx.lineWidth = 1;
-      textCtx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(layer.x, lineY);
+      ctx.lineTo(layer.x + metrics.width, lineY);
+      ctx.strokeStyle = layer.color;
+      ctx.lineWidth = 1;
+      ctx.stroke();
     }
 
     // Draw selection indicators
     if (layer.id === selectedLayerId) {
-      const metrics = textCtx.measureText(layer.text);
+      const metrics = ctx.measureText(layer.text);
       const height = layer.fontSize;
 
-      textCtx.strokeStyle = "#0066ff";
-      textCtx.lineWidth = 1;
-      textCtx.setLineDash([5, 5]);
-      textCtx.strokeRect(
+      ctx.strokeStyle = "#0066ff";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      ctx.strokeRect(
         layer.x - 4,
         layer.y - height - 4,
         metrics.width + 8,
         height + 8
       );
 
-      textCtx.fillStyle = "#0066ff";
-      textCtx.font = "12px Inter";
-      textCtx.setLineDash([]);
-      textCtx.fillText(
+      ctx.fillStyle = "#0066ff";
+      ctx.font = "12px Inter";
+      ctx.setLineDash([]);
+      ctx.fillText(
         `(${Math.round(layer.x)}, ${Math.round(layer.y)})`,
         layer.x,
         layer.y + 20
       );
     }
 
-    textCtx.restore();
+    ctx.restore();
   });
-
-  // Composite the text onto the main canvas
-  ctx.drawImage(textCanvas, 0, 0);
 };
 
 export interface LinearGradientSettings {

@@ -1,20 +1,11 @@
 import { renderCanvas } from "@/app/frame-settings/utils";
-import {
-  FrameSettings,
-  useFrameSettings,
-} from "@/contexts/FrameSettingsContext";
+import { useFrameSettings } from "@/contexts/FrameSettingsContext";
 import { useTextEditor } from "@/contexts/TextEditorContext";
 import localStorageService from "@/lib/localStorageService";
 import { TextLayer } from "@/lib/types";
 import clsx from "clsx";
 import { Check, Download, Edit, Save } from "lucide-react";
-import {
-  FocusEventHandler,
-  KeyboardEventHandler,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { FocusEventHandler, KeyboardEventHandler, useEffect, useRef, useState } from "react";
 import { v4 } from "uuid";
 import { Button } from "../ui/button";
 
@@ -27,15 +18,11 @@ interface DragState {
 }
 
 export default function Preview() {
-  const {
-    currentFrameSettings,
-    updateFrameSettings,
-    updateCurrentFrameSettings,
-    isCurrentFrameSettingsSaved,
-  } = useFrameSettings();
-
+  const { currentFrameSettings, updateFrameSettings, updateCurrentFrameSettings, isCurrentFrameSettingsSaved } = useFrameSettings();
   const { state, dispatch } = useTextEditor();
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const editableTitleRef = useRef<HTMLHeadingElement>(null);
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     startX: 0,
@@ -44,12 +31,19 @@ export default function Preview() {
     layerStartY: 0,
   });
 
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const editableTitleRef = useRef<HTMLHeadingElement>(null);
-
   const { screenHeight, screenWidth, documentName } = currentFrameSettings;
+
+  // Initial render and frame settings changes
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    renderCanvas(canvasRef, currentFrameSettings, state);
+  }, [currentFrameSettings]);
+
+  // Handle text layer changes
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    renderCanvas(canvasRef, currentFrameSettings, state);
+  }, [state, state.layers, state.selectedLayerId]);
 
   const handleSaveTitle: FocusEventHandler<HTMLHeadingElement> = (e) => {
     if (editableTitleRef.current != null) {
@@ -66,9 +60,7 @@ export default function Preview() {
     setIsEditingTitle(false);
   };
 
-  const handleOnKeyDownWhenEditingTitle: KeyboardEventHandler<
-    HTMLHeadingElement
-  > = (e) => {
+  const handleOnKeyDownWhenEditingTitle: KeyboardEventHandler<HTMLHeadingElement> = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
       onSaveTitle();
@@ -78,12 +70,10 @@ export default function Preview() {
 
   const onEditTitle = () => {
     setIsEditingTitle(true);
-
     editableTitleRef.current?.focus();
-    // Move cursor to the end of the text.
     const range = document.createRange();
     range.selectNodeContents(editableTitleRef.current!);
-    range.collapse(false); // Collapse to the end
+    range.collapse(false);
     const selection = window.getSelection();
     selection!.removeAllRanges();
     selection!.addRange(range);
@@ -114,69 +104,6 @@ export default function Preview() {
     }
   };
 
-  useEffect(() => {
-    renderCanvas(canvasRef, currentFrameSettings, state);
-  }, [currentFrameSettings, state]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const context = canvas.getContext("2d", { alpha: true });
-    if (!context) return;
-
-    setCtx(context);
-  }, []);
-
-  // Add keyboard event handlers
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!state.selectedLayerId) return;
-
-      const moveAmount = e.shiftKey ? 10 : 1; // Move 10px with shift, 1px without
-      let dx = 0;
-      let dy = 0;
-
-      switch (e.key) {
-        case "ArrowLeft":
-          dx = -moveAmount;
-          break;
-        case "ArrowRight":
-          dx = moveAmount;
-          break;
-        case "ArrowUp":
-          dy = -moveAmount;
-          break;
-        case "ArrowDown":
-          dy = moveAmount;
-          break;
-        default:
-          return;
-      }
-
-      e.preventDefault(); // Prevent page scrolling
-
-      const layer = state.layers.find(
-        (layer) => layer.id === state.selectedLayerId
-      );
-      if (!layer) return;
-
-      dispatch({
-        type: "UPDATE_LAYER",
-        payload: {
-          id: state.selectedLayerId,
-          updates: {
-            x: layer.x + dx,
-            y: layer.y + dy,
-          },
-        },
-      });
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [state.selectedLayerId, dispatch, state.layers]);
-
   const getMousePos = (e: MouseEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
@@ -192,16 +119,16 @@ export default function Preview() {
   };
 
   const isPointInTextBounds = (x: number, y: number, layer: TextLayer) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return false;
+
+    const ctx = canvas.getContext("2d");
     if (!ctx) return false;
 
     ctx.save();
-    ctx.font = `${layer.italic ? "italic " : ""}${layer.bold ? "bold " : ""}${
-      layer.fontSize
-    }px ${layer.fontFamily}`;
-
+    ctx.font = `${layer.italic ? "italic " : ""}${layer.bold ? "bold " : ""}${layer.fontSize}px ${layer.fontFamily}`;
     const metrics = ctx.measureText(layer.text);
     const height = layer.fontSize;
-
     ctx.restore();
 
     return (
@@ -262,94 +189,52 @@ export default function Preview() {
     });
   };
 
+  // Add keyboard event handlers
   useEffect(() => {
-    if (!ctx || !canvasRef.current) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!state.selectedLayerId) return;
 
-    // Clear the entire canvas first
-    ctx.clearRect(0, 0, screenWidth, screenHeight);
+      const moveAmount = e.shiftKey ? 10 : 1;
+      let dx = 0;
+      let dy = 0;
 
-    // Create a temporary canvas for text layers
-    const textCanvas = document.createElement("canvas");
-    textCanvas.width = screenWidth;
-    textCanvas.height = screenHeight;
-    const textCtx = textCanvas.getContext("2d", { alpha: true });
-
-    if (!textCtx) return;
-
-    // Clear the text canvas
-    textCtx.clearRect(0, 0, screenWidth, screenHeight);
-
-    // Render each text layer on the temporary canvas
-    state.layers.forEach((layer) => {
-      textCtx.save();
-
-      // Set text styles
-      textCtx.font = `${layer.italic ? "italic " : ""}${
-        layer.bold ? "bold " : ""
-      }${layer.fontSize}px ${layer.fontFamily}`;
-      textCtx.fillStyle = layer.color;
-
-      // Apply effects
-      if (layer.effects.shadow.enabled) {
-        textCtx.shadowColor = layer.effects.shadow.color;
-        textCtx.shadowBlur = layer.effects.shadow.blur;
-        textCtx.shadowOffsetX = layer.effects.shadow.offsetX;
-        textCtx.shadowOffsetY = layer.effects.shadow.offsetY;
+      switch (e.key) {
+        case "ArrowLeft":
+          dx = -moveAmount;
+          break;
+        case "ArrowRight":
+          dx = moveAmount;
+          break;
+        case "ArrowUp":
+          dy = -moveAmount;
+          break;
+        case "ArrowDown":
+          dy = moveAmount;
+          break;
+        default:
+          return;
       }
 
-      if (layer.effects.outline.enabled) {
-        textCtx.strokeStyle = layer.effects.outline.color;
-        textCtx.lineWidth = layer.effects.outline.width;
-        textCtx.strokeText(layer.text, layer.x, layer.y);
-      }
+      e.preventDefault();
 
-      // Draw text
-      textCtx.fillText(layer.text, layer.x, layer.y);
+      const layer = state.layers.find((layer) => layer.id === state.selectedLayerId);
+      if (!layer) return;
 
-      // Draw underline if enabled
-      if (layer.underline) {
-        const metrics = textCtx.measureText(layer.text);
-        const lineY = layer.y + 3;
-        textCtx.beginPath();
-        textCtx.moveTo(layer.x, lineY);
-        textCtx.lineTo(layer.x + metrics.width, lineY);
-        textCtx.strokeStyle = layer.color;
-        textCtx.lineWidth = 1;
-        textCtx.stroke();
-      }
+      dispatch({
+        type: "UPDATE_LAYER",
+        payload: {
+          id: state.selectedLayerId,
+          updates: {
+            x: layer.x + dx,
+            y: layer.y + dy,
+          },
+        },
+      });
+    };
 
-      // Draw bounding box for selected layer
-      if (layer.id === state.selectedLayerId) {
-        const metrics = textCtx.measureText(layer.text);
-        const height = layer.fontSize;
-
-        textCtx.strokeStyle = "#0066ff";
-        textCtx.lineWidth = 1;
-        textCtx.setLineDash([5, 5]);
-        textCtx.strokeRect(
-          layer.x - 4,
-          layer.y - height - 4,
-          metrics.width + 8,
-          height + 8
-        );
-
-        // Draw coordinates
-        textCtx.fillStyle = "#0066ff";
-        textCtx.font = "12px Inter";
-        textCtx.setLineDash([]);
-        textCtx.fillText(
-          `(${Math.round(layer.x)}, ${Math.round(layer.y)})`,
-          layer.x,
-          layer.y + 20
-        );
-      }
-
-      textCtx.restore();
-    });
-
-    // Draw the text layers onto the main canvas
-    ctx.drawImage(textCanvas, 0, 0);
-  }, [state.layers, state.selectedLayerId, ctx, screenWidth, screenHeight]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [state.selectedLayerId, dispatch, state.layers]);
 
   return (
     <main className="flex-1 p-6 bg-background">
@@ -370,17 +255,9 @@ export default function Preview() {
               {documentName}
             </h2>
             {isEditingTitle ? (
-              <Check
-                size={16}
-                onClick={onSaveTitle}
-                className="cursor-pointer"
-              />
+              <Check size={16} onClick={onSaveTitle} className="cursor-pointer" />
             ) : (
-              <Edit
-                size={16}
-                onClick={onEditTitle}
-                className="cursor-pointer"
-              />
+              <Edit size={16} onClick={onEditTitle} className="cursor-pointer" />
             )}
           </div>
           <div className="flex gap-2">
@@ -407,7 +284,7 @@ export default function Preview() {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          tabIndex={0} // Make canvas focusable
+          tabIndex={0}
         />
       </div>
     </main>
