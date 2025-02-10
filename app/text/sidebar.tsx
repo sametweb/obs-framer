@@ -156,7 +156,7 @@ export function Sidebar() {
                 <div className="space-y-2">
                   <Label>Font family</Label>
                   <Select
-                    // value={selectedLayer.fontFamily}
+                    value={selectedLayer.fontFamily}
                     onValueChange={(value) =>
                       dispatch({
                         type: "UPDATE_LAYER",

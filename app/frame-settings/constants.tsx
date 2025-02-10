@@ -1,5 +1,6 @@
 import { LinearGradientSettings } from "./utils";
 
+// Dropdown options for the screen size setting.
 export const commonResolutions = [
   { name: "HD", width: 1366, height: 768 },
   { name: "Full HD", width: 1920, height: 1080 },

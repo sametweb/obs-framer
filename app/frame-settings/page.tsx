@@ -308,7 +308,7 @@ export default function Home() {
               </div>
 
               <div className="space-y-4">
-                <Label>Gradient</Label>
+                <Label>Background</Label>
                 <div
                   className="h-32 rounded-lg shadow-lg"
                   style={{ background: getGradientStyle(frameGradient) }}
