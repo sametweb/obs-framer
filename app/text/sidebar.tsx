@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ColorPicker } from "@/components/ui/color-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,15 +16,7 @@ import { useFrameSettings } from "@/contexts/FrameSettingsContext";
 import { useTextEditor } from "@/contexts/TextEditorContext";
 import { useFonts } from "@/hooks/use-fonts";
 import { GOOGLE_FONTS } from "@/lib/fonts";
-import {
-  Bold,
-  Italic,
-  Redo2,
-  Trash2,
-  Type,
-  Underline,
-  Undo2,
-} from "lucide-react";
+import { Bold, Italic, Redo2, Trash2, Underline, Undo2 } from "lucide-react";
 import { useState } from "react";
 
 export function Sidebar() {
@@ -87,7 +80,7 @@ export function Sidebar() {
     <aside className="w-[300px] border-r border-border bg-card p-6">
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label>Add New Text</Label>
+          <Label>Add new text</Label>
           <div className="flex space-x-2">
             <Input
               value={newText}
@@ -100,8 +93,8 @@ export function Sidebar() {
                 }
               }}
             />
-            <Button onClick={handleAddLayer}>
-              <Type className="w-4 h-4" />
+            <Button onClick={handleAddLayer} disabled={!newText}>
+              Add
             </Button>
           </div>
         </div>
@@ -128,7 +121,7 @@ export function Sidebar() {
         {selectedLayer && (
           <>
             <div className="space-y-2">
-              <Label>Edit Text</Label>
+              <Label>Edit text</Label>
               <div className="flex space-x-2">
                 <Input
                   value={selectedLayer.text}
@@ -185,7 +178,7 @@ export function Sidebar() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Font Size</Label>
+                  <Label>Font size</Label>
                   <Input
                     type="number"
                     min={1}
@@ -203,84 +196,110 @@ export function Sidebar() {
                         },
                       });
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        const value = selectedLayer.fontSize + 1;
+                        dispatch({
+                          type: "UPDATE_LAYER",
+                          payload: {
+                            id: selectedLayer.id,
+                            updates: {
+                              fontSize: selectedLayer.fontSize + 1,
+                            },
+                          },
+                        });
+                      }
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        const value = selectedLayer.fontSize - 1;
+                        dispatch({
+                          type: "UPDATE_LAYER",
+                          payload: {
+                            id: selectedLayer.id,
+                            updates: {
+                              fontSize: selectedLayer.fontSize - 1,
+                            },
+                          },
+                        });
+                      }
+                    }}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Color</Label>
-                  <Input
-                    type="color"
-                    value={selectedLayer.color}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "UPDATE_LAYER",
-                        payload: {
-                          id: selectedLayer.id,
-                          updates: { color: e.target.value },
-                        },
-                      })
-                    }
-                  />
-                </div>
+                  <div className="flex space-x-2">
+                    <ColorPicker
+                      value={selectedLayer.color}
+                      onChange={(color) =>
+                        dispatch({
+                          type: "UPDATE_LAYER",
+                          payload: {
+                            id: selectedLayer.id,
+                            updates: { color },
+                          },
+                        })
+                      }
+                    />
 
-                <div className="flex space-x-2">
-                  <Button
-                    variant={selectedLayer.bold ? "default" : "outline"}
-                    size="icon"
-                    onClick={() =>
-                      dispatch({
-                        type: "UPDATE_LAYER",
-                        payload: {
-                          id: selectedLayer.id,
-                          updates: { bold: !selectedLayer.bold },
-                        },
-                      })
-                    }
-                  >
-                    <Bold className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={selectedLayer.italic ? "default" : "outline"}
-                    size="icon"
-                    onClick={() =>
-                      dispatch({
-                        type: "UPDATE_LAYER",
-                        payload: {
-                          id: selectedLayer.id,
-                          updates: { italic: !selectedLayer.italic },
-                        },
-                      })
-                    }
-                  >
-                    <Italic className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={selectedLayer.underline ? "default" : "outline"}
-                    size="icon"
-                    onClick={() =>
-                      dispatch({
-                        type: "UPDATE_LAYER",
-                        payload: {
-                          id: selectedLayer.id,
-                          updates: { underline: !selectedLayer.underline },
-                        },
-                      })
-                    }
-                  >
-                    <Underline className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() =>
-                      dispatch({
-                        type: "DELETE_LAYER",
-                        payload: selectedLayer.id,
-                      })
-                    }
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                    <Button
+                      variant={selectedLayer.bold ? "default" : "outline"}
+                      size="icon"
+                      onClick={() =>
+                        dispatch({
+                          type: "UPDATE_LAYER",
+                          payload: {
+                            id: selectedLayer.id,
+                            updates: { bold: !selectedLayer.bold },
+                          },
+                        })
+                      }
+                    >
+                      <Bold className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant={selectedLayer.italic ? "default" : "outline"}
+                      size="icon"
+                      onClick={() =>
+                        dispatch({
+                          type: "UPDATE_LAYER",
+                          payload: {
+                            id: selectedLayer.id,
+                            updates: { italic: !selectedLayer.italic },
+                          },
+                        })
+                      }
+                    >
+                      <Italic className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant={selectedLayer.underline ? "default" : "outline"}
+                      size="icon"
+                      onClick={() =>
+                        dispatch({
+                          type: "UPDATE_LAYER",
+                          payload: {
+                            id: selectedLayer.id,
+                            updates: { underline: !selectedLayer.underline },
+                          },
+                        })
+                      }
+                    >
+                      <Underline className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={() =>
+                        dispatch({
+                          type: "DELETE_LAYER",
+                          payload: selectedLayer.id,
+                        })
+                      }
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
 

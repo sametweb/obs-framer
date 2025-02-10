@@ -340,10 +340,10 @@ export default function Home() {
 
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label>{isSolidColor ? "Color" : "Color Stops"}</Label>
+                      <Label>{isSolidColor ? "Color" : "Color stops"}</Label>
                       <Button variant="outline" size="xs" onClick={addStop}>
                         <Plus className="h-4 w-4 mr-1" />
-                        Add Stop
+                        Add stop
                       </Button>
                     </div>
 
