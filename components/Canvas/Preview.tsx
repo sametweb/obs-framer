@@ -120,7 +120,7 @@ export default function Preview() {
     }
   };
 
-  const getMousePos = (e: MouseEvent) => {
+  const getMousePos = (e: React.MouseEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
 
@@ -157,7 +157,7 @@ export default function Preview() {
     );
   };
 
-  const handleMouseDown = (e: MouseEvent) => {
+  const handleMouseDown = (e: React.MouseEvent) => {
     const pos = getMousePos(e);
 
     // Check each layer in reverse order (top to bottom)
@@ -179,7 +179,7 @@ export default function Preview() {
     dispatch({ type: "SELECT_LAYER", payload: null });
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = (e: React.MouseEvent) => {
     if (!dragState.isDragging || !state.selectedLayerId) return;
     const pos = getMousePos(e);
     const dx = pos.x - dragState.startX;

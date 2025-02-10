@@ -228,7 +228,7 @@ export function Sidebar() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-1">
                     <ColorPicker
                       value={selectedLayer.color}
                       onChange={(color) =>
