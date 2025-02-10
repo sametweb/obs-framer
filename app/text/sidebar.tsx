@@ -193,18 +193,15 @@ export function Sidebar() {
                     value={selectedLayer.fontSize}
                     onChange={(e) => {
                       const value = parseInt(e.target.value);
-                      // Only update if we have a valid number
-                      if (!isNaN(value)) {
-                        dispatch({
-                          type: "UPDATE_LAYER",
-                          payload: {
-                            id: selectedLayer.id,
-                            updates: {
-                              fontSize: Math.max(1, Math.min(200, value)),
-                            },
+                      dispatch({
+                        type: "UPDATE_LAYER",
+                        payload: {
+                          id: selectedLayer.id,
+                          updates: {
+                            fontSize: Math.max(1, Math.min(200, value)),
                           },
-                        });
-                      }
+                        },
+                      });
                     }}
                   />
                 </div>

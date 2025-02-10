@@ -1,5 +1,8 @@
 import { renderCanvas } from "@/app/frame-settings/utils";
-import { useFrameSettings } from "@/contexts/FrameSettingsContext";
+import {
+  FrameSettings,
+  useFrameSettings,
+} from "@/contexts/FrameSettingsContext";
 import { useTextEditor } from "@/contexts/TextEditorContext";
 import localStorageService from "@/lib/localStorageService";
 import { TextLayer } from "@/lib/types";
@@ -46,7 +49,6 @@ export default function Preview() {
 
   // Initial render and frame settings changes
   useEffect(() => {
-    console.log({ state });
     if (!canvasRef.current) return;
     renderCanvas(canvasRef, currentFrameSettings, state);
   }, [currentFrameSettings, state]);
