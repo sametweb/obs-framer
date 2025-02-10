@@ -5,7 +5,13 @@ import localStorageService from "@/lib/localStorageService";
 import { TextLayer } from "@/lib/types";
 import clsx from "clsx";
 import { Check, Download, Edit, Save } from "lucide-react";
-import { FocusEventHandler, KeyboardEventHandler, useEffect, useRef, useState } from "react";
+import {
+  FocusEventHandler,
+  KeyboardEventHandler,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { v4 } from "uuid";
 import { Button } from "../ui/button";
 
@@ -18,7 +24,12 @@ interface DragState {
 }
 
 export default function Preview() {
-  const { currentFrameSettings, updateFrameSettings, updateCurrentFrameSettings, isCurrentFrameSettingsSaved } = useFrameSettings();
+  const {
+    currentFrameSettings,
+    updateFrameSettings,
+    updateCurrentFrameSettings,
+    isCurrentFrameSettingsSaved,
+  } = useFrameSettings();
   const { state, dispatch } = useTextEditor();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -35,15 +46,16 @@ export default function Preview() {
 
   // Initial render and frame settings changes
   useEffect(() => {
+    console.log({ state });
     if (!canvasRef.current) return;
     renderCanvas(canvasRef, currentFrameSettings, state);
-  }, [currentFrameSettings]);
+  }, [currentFrameSettings, state]);
 
   // Handle text layer changes
   useEffect(() => {
     if (!canvasRef.current) return;
     renderCanvas(canvasRef, currentFrameSettings, state);
-  }, [state, state.layers, state.selectedLayerId]);
+  }, [state, state.layers, state.selectedLayerId, currentFrameSettings]);
 
   const handleSaveTitle: FocusEventHandler<HTMLHeadingElement> = (e) => {
     if (editableTitleRef.current != null) {
@@ -60,7 +72,9 @@ export default function Preview() {
     setIsEditingTitle(false);
   };
 
-  const handleOnKeyDownWhenEditingTitle: KeyboardEventHandler<HTMLHeadingElement> = (e) => {
+  const handleOnKeyDownWhenEditingTitle: KeyboardEventHandler<
+    HTMLHeadingElement
+  > = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
       onSaveTitle();
@@ -126,7 +140,9 @@ export default function Preview() {
     if (!ctx) return false;
 
     ctx.save();
-    ctx.font = `${layer.italic ? "italic " : ""}${layer.bold ? "bold " : ""}${layer.fontSize}px ${layer.fontFamily}`;
+    ctx.font = `${layer.italic ? "italic " : ""}${layer.bold ? "bold " : ""}${
+      layer.fontSize
+    }px ${layer.fontFamily}`;
     const metrics = ctx.measureText(layer.text);
     const height = layer.fontSize;
     ctx.restore();
@@ -217,7 +233,9 @@ export default function Preview() {
 
       e.preventDefault();
 
-      const layer = state.layers.find((layer) => layer.id === state.selectedLayerId);
+      const layer = state.layers.find(
+        (layer) => layer.id === state.selectedLayerId
+      );
       if (!layer) return;
 
       dispatch({
@@ -255,9 +273,17 @@ export default function Preview() {
               {documentName}
             </h2>
             {isEditingTitle ? (
-              <Check size={16} onClick={onSaveTitle} className="cursor-pointer" />
+              <Check
+                size={16}
+                onClick={onSaveTitle}
+                className="cursor-pointer"
+              />
             ) : (
-              <Edit size={16} onClick={onEditTitle} className="cursor-pointer" />
+              <Edit
+                size={16}
+                onClick={onEditTitle}
+                className="cursor-pointer"
+              />
             )}
           </div>
           <div className="flex gap-2">

@@ -3,7 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrameSettings } from "@/contexts/FrameSettingsContext";
 import { useTextEditor } from "@/contexts/TextEditorContext";
@@ -148,49 +154,58 @@ export function Sidebar() {
 
               <TabsContent value="style" className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Font Family</Label>
-                  <select
-                    className="w-full rounded-md border border-input bg-background px-3 py-2"
-                    value={selectedLayer.fontFamily}
-                    onChange={(e) =>
+                  <Label>Font family</Label>
+                  <Select
+                    // value={selectedLayer.fontFamily}
+                    onValueChange={(value) =>
                       dispatch({
                         type: "UPDATE_LAYER",
                         payload: {
                           id: selectedLayer.id,
-                          updates: { fontFamily: e.target.value },
+                          updates: { fontFamily: value },
                         },
                       })
                     }
-                    style={{ fontFamily: selectedLayer.fontFamily }}
                   >
-                    {GOOGLE_FONTS.map((font) => (
-                      <option
-                        key={font}
-                        value={font}
-                        style={{ fontFamily: font }}
-                      >
-                        {font}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select font family" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white drop-shadow-md">
+                      {GOOGLE_FONTS.map((font) => (
+                        <SelectItem
+                          key={font}
+                          value={font}
+                          style={{ fontFamily: font }}
+                        >
+                          {font}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label>Font Size</Label>
-                  <Slider
-                    value={[selectedLayer.fontSize]}
-                    min={8}
+                  <Input
+                    type="number"
+                    min={1}
                     max={200}
-                    step={1}
-                    onValueChange={([value]) =>
-                      dispatch({
-                        type: "UPDATE_LAYER",
-                        payload: {
-                          id: selectedLayer.id,
-                          updates: { fontSize: value },
-                        },
-                      })
-                    }
+                    value={selectedLayer.fontSize}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      // Only update if we have a valid number
+                      if (!isNaN(value)) {
+                        dispatch({
+                          type: "UPDATE_LAYER",
+                          payload: {
+                            id: selectedLayer.id,
+                            updates: {
+                              fontSize: Math.max(1, Math.min(200, value)),
+                            },
+                          },
+                        });
+                      }
+                    }}
                   />
                 </div>
 
@@ -329,12 +344,12 @@ export function Sidebar() {
                         </div>
                         <div className="space-y-2">
                           <Label>Shadow Blur</Label>
-                          <Slider
-                            value={[selectedLayer.effects.shadow.blur]}
-                            min={0}
-                            max={20}
-                            step={1}
-                            onValueChange={([value]) =>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="20"
+                            value={selectedLayer.effects.shadow.blur}
+                            onChange={(e) =>
                               dispatch({
                                 type: "UPDATE_LAYER",
                                 payload: {
@@ -344,7 +359,7 @@ export function Sidebar() {
                                       ...selectedLayer.effects,
                                       shadow: {
                                         ...selectedLayer.effects.shadow,
-                                        blur: value,
+                                        blur: parseInt(e.target.value),
                                       },
                                     },
                                   },
@@ -414,12 +429,12 @@ export function Sidebar() {
                         </div>
                         <div className="space-y-2">
                           <Label>Outline Width</Label>
-                          <Slider
-                            value={[selectedLayer.effects.outline.width]}
-                            min={1}
-                            max={10}
-                            step={1}
-                            onValueChange={([value]) =>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={selectedLayer.effects.outline.width}
+                            onChange={(e) =>
                               dispatch({
                                 type: "UPDATE_LAYER",
                                 payload: {
@@ -429,7 +444,7 @@ export function Sidebar() {
                                       ...selectedLayer.effects,
                                       outline: {
                                         ...selectedLayer.effects.outline,
-                                        width: value,
+                                        width: parseInt(e.target.value),
                                       },
                                     },
                                   },
