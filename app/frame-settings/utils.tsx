@@ -62,7 +62,8 @@ export const drawFrame = (
 ) => {
   const totalSpacing = frameSpacing * (frameCount - 1);
   const totalBorders = frameLeftWidth + frameRightWidth;
-  const totalUsableFrameWidth = (frameWidth - totalSpacing - totalBorders) / frameCount;
+  const totalUsableFrameWidth =
+    (frameWidth - totalSpacing - totalBorders) / frameCount;
 
   for (let i = 0; i < frameCount; i++) {
     const offsetX = i * (totalUsableFrameWidth + frameSpacing);
@@ -73,7 +74,7 @@ export const drawFrame = (
     // Carve out the frame
     ctx.globalCompositeOperation = "destination-out";
     ctx.beginPath();
-    ctx.moveTo(frameLeftWidth, frameTopWidth);
+    ctx.moveTo(frameLeftWidth + frameRadius, frameTopWidth);
     ctx.arcTo(
       frameLeftWidth + totalUsableFrameWidth,
       frameTopWidth,
@@ -126,7 +127,9 @@ export const drawText = (
     ctx.save();
 
     // Set text styles
-    ctx.font = `${layer.italic ? "italic " : ""}${layer.bold ? "bold " : ""}${layer.fontSize}px ${layer.fontFamily}`;
+    ctx.font = `${layer.italic ? "italic " : ""}${layer.bold ? "bold " : ""}${
+      layer.fontSize
+    }px ${layer.fontFamily}`;
     ctx.fillStyle = layer.color;
 
     // Apply effects
