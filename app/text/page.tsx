@@ -2,7 +2,7 @@
 import Preview from "@/components/Canvas/Preview";
 import { Sidebar } from "./sidebar";
 
-export default function page() {
+export default function Page() {
   return (
     <div className="flex h-screen">
       <Sidebar />

@@ -48,3 +48,11 @@ export interface HistoryState {
   present: TextEditorState;
   future: TextEditorState[];
 }
+
+export interface DragState {
+  isDragging: boolean;
+  startX: number;
+  startY: number;
+  layerStartX: number;
+  layerStartY: number;
+}

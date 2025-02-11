@@ -7,36 +7,21 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import {
-  FolderOpen,
-  HelpCircle,
-  Home,
-  LucideProps,
-  Proportions,
-  Settings,
-  Type,
-} from "lucide-react";
+import { HelpCircle, Settings } from "lucide-react";
 import Link from "next/link";
-import { ForwardRefExoticComponent, RefAttributes } from "react";
+import {
+  frameRoute,
+  homeRoute,
+  NavItem,
+  projectsRoute,
+  textRoute,
+} from "./routes";
 
-type NavItem = {
-  icon: ForwardRefExoticComponent<
-    Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
-  >;
-  label: string;
-  path?: string;
-};
-
-const navItems: NavItem[] = [
-  { icon: Home, label: "Home", path: "/" },
-  { icon: FolderOpen, label: "Projects", path: "/projects" },
-  { icon: Proportions, label: "Frame settings", path: "/frame-settings" },
-  { icon: Type, label: "Text", path: "/text" },
-];
+const navItems: NavItem[] = [homeRoute, projectsRoute, frameRoute, textRoute];
 
 const bottomNavItems: NavItem[] = [
-  { icon: Settings, label: "Settings" },
-  { icon: HelpCircle, label: "Help" },
+  { icon: Settings, label: "Settings", path: "/" },
+  { icon: HelpCircle, label: "Help", path: "/" },
 ];
 
 export function Sidebar() {

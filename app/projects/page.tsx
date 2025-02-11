@@ -1,13 +1,14 @@
 "use client";
 
+import { frameRoute } from "@/components/Navigation/routes";
 import { useFrameSettings } from "@/contexts/FrameSettingsContext";
 import localStorageService from "@/lib/localStorageService";
 import { Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import { FrameSettings } from "../frame-settings/constants";
-import { renderCanvas } from "../frame-settings/utils";
+import { FrameSettings } from "../frame/constants";
+import { renderCanvas } from "../frame/utils";
 
 const Card = dynamic(() => import("@/components/ui/card").then((c) => c.Card), {
   ssr: false,
@@ -45,7 +46,7 @@ export default function Home() {
   const onProjectClick = (frame: FrameSettings) => {
     updateFrameSettings(frame);
     updateCurrentFrameSettings(frame);
-    router.push("/frame-settings");
+    router.push(frameRoute.path);
   };
 
   return (

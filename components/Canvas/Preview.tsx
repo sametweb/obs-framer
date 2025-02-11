@@ -1,11 +1,11 @@
-import { renderCanvas } from "@/app/frame-settings/utils";
+import { renderCanvas } from "@/app/frame/utils";
 import {
   FrameSettings,
   useFrameSettings,
 } from "@/contexts/FrameSettingsContext";
 import { useTextEditor } from "@/contexts/TextEditorContext";
 import localStorageService from "@/lib/localStorageService";
-import { TextLayer } from "@/lib/types";
+import { DragState, TextLayer } from "@/lib/types";
 import clsx from "clsx";
 import { Check, Download, Edit, Save } from "lucide-react";
 import {
@@ -18,13 +18,13 @@ import {
 import { v4 } from "uuid";
 import { Button } from "../ui/button";
 
-interface DragState {
-  isDragging: boolean;
-  startX: number;
-  startY: number;
-  layerStartX: number;
-  layerStartY: number;
-}
+const defaultDragState = {
+  isDragging: false,
+  startX: 0,
+  startY: 0,
+  layerStartX: 0,
+  layerStartY: 0,
+};
 
 export default function Preview() {
   const {
@@ -34,26 +34,15 @@ export default function Preview() {
     isCurrentFrameSettingsSaved,
   } = useFrameSettings();
   const { state, dispatch } = useTextEditor();
+
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [dragState, setDragState] = useState<DragState>(defaultDragState);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const editableTitleRef = useRef<HTMLHeadingElement>(null);
-  const [dragState, setDragState] = useState<DragState>({
-    isDragging: false,
-    startX: 0,
-    startY: 0,
-    layerStartX: 0,
-    layerStartY: 0,
-  });
 
   const { screenHeight, screenWidth, documentName } = currentFrameSettings;
 
-  // Initial render and frame settings changes
-  useEffect(() => {
-    if (!canvasRef.current) return;
-    renderCanvas(canvasRef, currentFrameSettings, state);
-  }, [currentFrameSettings, state]);
-
-  // Handle text layer changes
   useEffect(() => {
     if (!canvasRef.current) return;
     renderCanvas(canvasRef, currentFrameSettings, state);

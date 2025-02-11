@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  defaultFrameSettings,
-  FrameSettings,
-} from "@/app/frame-settings/constants";
+import { defaultFrameSettings, FrameSettings } from "@/app/frame/constants";
 import { deepCompare } from "@/lib/utils";
 import React, { createContext, useContext, useState } from "react";
 
