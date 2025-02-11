@@ -4,6 +4,7 @@ import { frameRoute } from "@/components/Navigation/routes";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { setState } from "@/lib/store/textEditorSlice";
+import { formatDistanceToNow } from "date-fns";
 import { Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -73,7 +74,12 @@ export default function Home() {
                 >
                   <CardHeader>
                     <CardTitle>{frame.documentName ?? "(no name)"}</CardTitle>
-                    <CardDescription>Last modified: Recently</CardDescription>
+                    <CardDescription>
+                      Last modified:{" "}
+                      {formatDistanceToNow(new Date(frame.modifiedAt), {
+                        addSuffix: true,
+                      })}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <FrameCanvas frame={frame} />

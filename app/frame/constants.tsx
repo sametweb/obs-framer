@@ -59,6 +59,8 @@ export interface FrameSettings {
   frameInnerBorderWidth: number;
   frameInnerBorderColor: string;
   textLayers: TextLayer[];
+  createdAt: string;
+  modifiedAt: string;
 }
 
 export const defaultFrameSettings: FrameSettings = {
@@ -77,4 +79,6 @@ export const defaultFrameSettings: FrameSettings = {
   frameInnerBorderWidth: frameInnerBorderWidth,
   frameInnerBorderColor: frameInnerBorderColor,
   textLayers: [],
+  createdAt: new Date().toISOString(),
+  modifiedAt: new Date().toISOString(),
 };
