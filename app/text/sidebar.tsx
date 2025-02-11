@@ -100,6 +100,9 @@ export function Sidebar() {
     );
   }
 
+  // Create a reversed copy of the layers array for display
+  const displayLayers = [...layers].reverse();
+
   return (
     <aside className="w-[300px] border-r border-border bg-card p-6">
       <div className="space-y-6">
@@ -132,7 +135,7 @@ export function Sidebar() {
               </p>
             ) : (
               <div className="space-y-2">
-                {layers.map((layer, index) => (
+                {displayLayers.map((layer, index) => (
                   <div
                     key={layer.id}
                     className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer ${
@@ -150,7 +153,7 @@ export function Sidebar() {
                         disabled={index === 0}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleMoveLayer(layer.id, "up");
+                          handleMoveLayer(layer.id, "down");
                         }}
                       >
                         <ChevronUp className="h-4 w-4" />
@@ -162,7 +165,7 @@ export function Sidebar() {
                         disabled={index === layers.length - 1}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleMoveLayer(layer.id, "down");
+                          handleMoveLayer(layer.id, "up");
                         }}
                       >
                         <ChevronDown className="h-4 w-4" />
