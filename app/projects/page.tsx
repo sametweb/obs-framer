@@ -1,9 +1,7 @@
 "use client";
 
 import { frameRoute } from "@/components/Navigation/routes";
-
 import { useFrameSettings } from "@/hooks/use-frame-settings";
-import localStorageService from "@/lib/localStorageService";
 import { Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -36,13 +34,14 @@ const CardFooter = dynamic(
 );
 
 export default function Home() {
-  const [frames, setFrames] = useState<FrameSettings[]>(
-    () => localStorageService.getItem<FrameSettings[]>("frames") ?? []
-  );
+  const [frames, setFrames] = useState<FrameSettings[]>([]);
 
   const router = useRouter();
-  const { updateFrameSettings, updateCurrentFrameSettings } =
-    useFrameSettings();
+  const {
+    currentFrameSettings,
+    updateFrameSettings,
+    updateCurrentFrameSettings,
+  } = useFrameSettings();
 
   const onProjectClick = (frame: FrameSettings) => {
     updateFrameSettings(frame);
@@ -67,22 +66,20 @@ export default function Home() {
                   className="cursor-pointer"
                 >
                   <CardHeader>
-                    <CardTitle>{frame.documentName ?? "(no name)"}</CardTitle>
-                    <CardDescription>Last modified: asdasd</CardDescription>
+                    <CardTitle>
+                      {currentFrameSettings.documentName ?? "(no name)"}
+                    </CardTitle>
+                    <CardDescription>Last modified: Recently</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <FrameCanvas frame={frame} />
+                    <FrameCanvas frame={currentFrameSettings} />
                   </CardContent>
                   <CardFooter className="flex justify-end">
                     <Trash2
                       size={16}
-                      onClick={() => {
-                        localStorageService.removeItemFromArray<FrameSettings>(
-                          "frames",
-                          frame.id
-                        );
-                        setFrames(frames.filter((_, index) => index !== i));
-                      }}
+                      onClick={() =>
+                        setFrames(frames.filter((_, index) => index !== i))
+                      }
                     />
                   </CardFooter>
                 </Card>

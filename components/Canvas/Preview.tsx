@@ -85,7 +85,7 @@ export default function Preview() {
 
   const handleSave = () => {
     if (currentFrameSettings.id.length == 0) {
-      currentFrameSettings.id = v4();
+      updateCurrentFrameSettings({ id: v4() });
     }
     updateFrameSettings(currentFrameSettings);
   };
