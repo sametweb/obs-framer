@@ -1,9 +1,11 @@
-import { configureStore } from '@reduxjs/toolkit';
-import textEditorReducer from './textEditorSlice';
+import { configureStore } from "@reduxjs/toolkit";
+import frameSettingsReducer from "./frameSettingsSlice";
+import textEditorReducer from "./textEditorSlice";
 
 export const store = configureStore({
   reducer: {
     textEditor: textEditorReducer,
+    frameSettings: frameSettingsReducer,
   },
 });
 
