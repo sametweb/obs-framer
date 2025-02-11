@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -20,9 +21,18 @@ import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import {
   addLayer,
   deleteLayer,
+  moveLayer,
+  selectLayer,
   updateLayer,
 } from "@/lib/store/textEditorSlice";
-import { Bold, Italic, Trash2, Underline } from "lucide-react";
+import {
+  Bold,
+  ChevronDown,
+  ChevronUp,
+  Italic,
+  Trash2,
+  Underline,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function Sidebar() {
@@ -76,6 +86,10 @@ export function Sidebar() {
     setNewText("");
   };
 
+  const handleMoveLayer = (id: string, direction: "up" | "down") => {
+    dispatch(moveLayer({ id, direction }));
+  };
+
   if (!fontsLoaded) {
     return (
       <aside className="w-[300px] border-r border-border bg-card p-6">
@@ -107,6 +121,74 @@ export function Sidebar() {
               Add
             </Button>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Layers</Label>
+          <ScrollArea className="h-[200px] border rounded-md p-2">
+            {layers.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No layers yet. Add some text to get started.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {layers.map((layer, index) => (
+                  <div
+                    key={layer.id}
+                    className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer ${
+                      layer.id === selectedLayerId
+                        ? "bg-accent"
+                        : "hover:bg-accent/50"
+                    }`}
+                    onClick={() => dispatch(selectLayer(layer.id))}
+                  >
+                    <div className="flex flex-col space-y-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        disabled={index === 0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveLayer(layer.id, "up");
+                        }}
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        disabled={index === layers.length - 1}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveLayer(layer.id, "down");
+                        }}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {layer.text}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        dispatch(deleteLayer(layer.id));
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
         </div>
 
         {selectedLayer && (
