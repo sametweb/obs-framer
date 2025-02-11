@@ -1,7 +1,8 @@
 "use client";
 
 import { frameRoute } from "@/components/Navigation/routes";
-import { useFrameSettings } from "@/contexts/FrameSettingsContext";
+
+import { useFrameSettings } from "@/hooks/use-frame-settings";
 import localStorageService from "@/lib/localStorageService";
 import { Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";

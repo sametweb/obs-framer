@@ -12,8 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFrameSettings } from "@/contexts/FrameSettingsContext";
 import { useFonts } from "@/hooks/use-fonts";
+import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { GOOGLE_FONTS } from "@/lib/fonts";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import {

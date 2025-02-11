@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { useFrameSettings } from "@/contexts/FrameSettingsContext";
+import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { ArrowLeftRight, Plus, Trash2 } from "lucide-react";
 import { commonResolutions, directions, FrameSettings } from "./constants";
 import {

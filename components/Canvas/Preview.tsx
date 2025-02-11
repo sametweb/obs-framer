@@ -1,5 +1,5 @@
 import { renderCanvas } from "@/app/frame/utils";
-import { useFrameSettings } from "@/contexts/FrameSettingsContext";
+import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { selectLayer, updateLayer } from "@/lib/store/textEditorSlice";
 import { DragState, TextLayer } from "@/lib/types";
@@ -168,13 +168,15 @@ export default function Preview() {
     const dx = pos.x - dragState.startX;
     const dy = pos.y - dragState.startY;
 
-    dispatch(updateLayer({
-      id: state.selectedLayerId,
-      updates: {
-        x: dragState.layerStartX + dx,
-        y: dragState.layerStartY + dy,
-      },
-    }));
+    dispatch(
+      updateLayer({
+        id: state.selectedLayerId,
+        updates: {
+          x: dragState.layerStartX + dx,
+          y: dragState.layerStartY + dy,
+        },
+      })
+    );
   };
 
   const handleMouseUp = () => {
@@ -214,13 +216,15 @@ export default function Preview() {
       );
       if (!layer) return;
 
-      dispatch(updateLayer({
-        id: state.selectedLayerId,
-        updates: {
-          x: layer.x + dx,
-          y: layer.y + dy,
-        },
-      }));
+      dispatch(
+        updateLayer({
+          id: state.selectedLayerId,
+          updates: {
+            x: layer.x + dx,
+            y: layer.y + dy,
+          },
+        })
+      );
     };
 
     window.addEventListener("keydown", handleKeyDown);
