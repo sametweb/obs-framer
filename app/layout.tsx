@@ -1,11 +1,7 @@
-import { Navbar } from "@/components/Navigation/Navbar";
-import { Sidebar } from "@/components/Navigation/Sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { FrameSettingsProvider } from "@/contexts/FrameSettingsContext";
-import { TextEditorProvider } from "@/contexts/TextEditorContext";
 import { GOOGLE_FONTS } from "@/lib/fonts";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { ClientLayout } from "./client-layout";
 import "./globals.css";
 
 const inter = Inter({
@@ -37,15 +33,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <TooltipProvider>
-          <FrameSettingsProvider>
-            <TextEditorProvider>
-              <Navbar />
-              <Sidebar />
-              <main className="ml-16 mt-16">{children}</main>
-            </TextEditorProvider>
-          </FrameSettingsProvider>
-        </TooltipProvider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );

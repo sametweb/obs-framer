@@ -1,10 +1,7 @@
 import { renderCanvas } from "@/app/frame/utils";
-import {
-  FrameSettings,
-  useFrameSettings,
-} from "@/contexts/FrameSettingsContext";
-import { useTextEditor } from "@/contexts/TextEditorContext";
-import localStorageService from "@/lib/localStorageService";
+import { useFrameSettings } from "@/contexts/FrameSettingsContext";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { selectLayer, updateLayer } from "@/lib/store/textEditorSlice";
 import { DragState, TextLayer } from "@/lib/types";
 import clsx from "clsx";
 import { Check, Download, Edit, Save } from "lucide-react";
@@ -33,7 +30,9 @@ export default function Preview() {
     updateCurrentFrameSettings,
     isCurrentFrameSettingsSaved,
   } = useFrameSettings();
-  const { state, dispatch } = useTextEditor();
+
+  const dispatch = useAppDispatch();
+  const state = useAppSelector((state) => state.textEditor);
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [dragState, setDragState] = useState<DragState>(defaultDragState);
@@ -85,15 +84,10 @@ export default function Preview() {
   };
 
   const handleSave = () => {
-    if (localStorageService.getItem<FrameSettings[]>("frames") == null) {
-      localStorageService.setItem("frames", []);
-    }
-
     if (currentFrameSettings.id.length == 0) {
       currentFrameSettings.id = v4();
     }
     updateFrameSettings(currentFrameSettings);
-    localStorageService.addItemToArray("frames", currentFrameSettings);
   };
 
   const handleDownloadCanvas = () => {
@@ -160,12 +154,12 @@ export default function Preview() {
           layerStartX: layer.x,
           layerStartY: layer.y,
         });
-        dispatch({ type: "SELECT_LAYER", payload: layer.id });
+        dispatch(selectLayer(layer.id));
         return;
       }
     }
 
-    dispatch({ type: "SELECT_LAYER", payload: null });
+    dispatch(selectLayer(null));
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -174,26 +168,17 @@ export default function Preview() {
     const dx = pos.x - dragState.startX;
     const dy = pos.y - dragState.startY;
 
-    dispatch({
-      type: "UPDATE_LAYER",
-      payload: {
-        id: state.selectedLayerId,
-        updates: {
-          x: dragState.layerStartX + dx,
-          y: dragState.layerStartY + dy,
-        },
+    dispatch(updateLayer({
+      id: state.selectedLayerId,
+      updates: {
+        x: dragState.layerStartX + dx,
+        y: dragState.layerStartY + dy,
       },
-    });
+    }));
   };
 
   const handleMouseUp = () => {
-    setDragState({
-      isDragging: false,
-      startX: 0,
-      startY: 0,
-      layerStartX: 0,
-      layerStartY: 0,
-    });
+    setDragState(defaultDragState);
   };
 
   // Add keyboard event handlers
@@ -229,16 +214,13 @@ export default function Preview() {
       );
       if (!layer) return;
 
-      dispatch({
-        type: "UPDATE_LAYER",
-        payload: {
-          id: state.selectedLayerId,
-          updates: {
-            x: layer.x + dx,
-            y: layer.y + dy,
-          },
+      dispatch(updateLayer({
+        id: state.selectedLayerId,
+        updates: {
+          x: layer.x + dx,
+          y: layer.y + dy,
         },
-      });
+      }));
     };
 
     window.addEventListener("keydown", handleKeyDown);

@@ -13,30 +13,35 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFrameSettings } from "@/contexts/FrameSettingsContext";
-import { useTextEditor } from "@/contexts/TextEditorContext";
 import { useFonts } from "@/hooks/use-fonts";
 import { GOOGLE_FONTS } from "@/lib/fonts";
-import { Bold, Italic, Redo2, Trash2, Underline, Undo2 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import {
+  addLayer,
+  deleteLayer,
+  updateLayer,
+} from "@/lib/store/textEditorSlice";
+import { Bold, Italic, Trash2, Underline } from "lucide-react";
 import { useState } from "react";
 
 export function Sidebar() {
   const {
     currentFrameSettings: { screenWidth, screenHeight },
   } = useFrameSettings();
-  const { state, dispatch, undo, redo, canUndo, canRedo } = useTextEditor();
+  const dispatch = useAppDispatch();
+  const { layers, selectedLayerId } = useAppSelector(
+    (state) => state.textEditor
+  );
   const [newText, setNewText] = useState("");
   const { fontsLoaded } = useFonts();
 
-  const selectedLayer = state.layers.find(
-    (layer) => layer.id === state.selectedLayerId
-  );
+  const selectedLayer = layers.find((layer) => layer.id === selectedLayerId);
 
   const handleAddLayer = () => {
     if (!newText.trim()) return;
 
-    dispatch({
-      type: "ADD_LAYER",
-      payload: {
+    dispatch(
+      addLayer({
         id: crypto.randomUUID(),
         text: newText,
         x: screenWidth / 2,
@@ -61,8 +66,8 @@ export function Sidebar() {
             width: 2,
           },
         },
-      },
-    });
+      })
+    );
     setNewText("");
   };
 
@@ -99,25 +104,6 @@ export function Sidebar() {
           </div>
         </div>
 
-        <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={undo}
-            disabled={!canUndo}
-          >
-            <Undo2 className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={redo}
-            disabled={!canRedo}
-          >
-            <Redo2 className="w-4 h-4" />
-          </Button>
-        </div>
-
         {selectedLayer && (
           <>
             <div className="space-y-2">
@@ -126,13 +112,12 @@ export function Sidebar() {
                 <Input
                   value={selectedLayer.text}
                   onChange={(e) =>
-                    dispatch({
-                      type: "UPDATE_LAYER",
-                      payload: {
+                    dispatch(
+                      updateLayer({
                         id: selectedLayer.id,
                         updates: { text: e.target.value },
-                      },
-                    })
+                      })
+                    )
                   }
                   placeholder="Edit text..."
                 />
@@ -151,13 +136,12 @@ export function Sidebar() {
                   <Select
                     value={selectedLayer.fontFamily}
                     onValueChange={(value) =>
-                      dispatch({
-                        type: "UPDATE_LAYER",
-                        payload: {
+                      dispatch(
+                        updateLayer({
                           id: selectedLayer.id,
                           updates: { fontFamily: value },
-                        },
-                      })
+                        })
+                      )
                     }
                   >
                     <SelectTrigger className="w-full">
@@ -186,15 +170,14 @@ export function Sidebar() {
                     value={selectedLayer.fontSize}
                     onChange={(e) => {
                       const value = parseInt(e.target.value);
-                      dispatch({
-                        type: "UPDATE_LAYER",
-                        payload: {
+                      dispatch(
+                        updateLayer({
                           id: selectedLayer.id,
                           updates: {
                             fontSize: Math.max(1, Math.min(200, value)),
                           },
-                        },
-                      });
+                        })
+                      );
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "ArrowUp") {
@@ -232,13 +215,12 @@ export function Sidebar() {
                     <ColorPicker
                       value={selectedLayer.color}
                       onChange={(color) =>
-                        dispatch({
-                          type: "UPDATE_LAYER",
-                          payload: {
+                        dispatch(
+                          updateLayer({
                             id: selectedLayer.id,
                             updates: { color },
-                          },
-                        })
+                          })
+                        )
                       }
                     />
 
@@ -246,13 +228,12 @@ export function Sidebar() {
                       variant={selectedLayer.bold ? "default" : "outline"}
                       size="icon"
                       onClick={() =>
-                        dispatch({
-                          type: "UPDATE_LAYER",
-                          payload: {
+                        dispatch(
+                          updateLayer({
                             id: selectedLayer.id,
                             updates: { bold: !selectedLayer.bold },
-                          },
-                        })
+                          })
+                        )
                       }
                     >
                       <Bold className="w-4 h-4" />
@@ -261,13 +242,12 @@ export function Sidebar() {
                       variant={selectedLayer.italic ? "default" : "outline"}
                       size="icon"
                       onClick={() =>
-                        dispatch({
-                          type: "UPDATE_LAYER",
-                          payload: {
+                        dispatch(
+                          updateLayer({
                             id: selectedLayer.id,
                             updates: { italic: !selectedLayer.italic },
-                          },
-                        })
+                          })
+                        )
                       }
                     >
                       <Italic className="w-4 h-4" />
@@ -276,13 +256,12 @@ export function Sidebar() {
                       variant={selectedLayer.underline ? "default" : "outline"}
                       size="icon"
                       onClick={() =>
-                        dispatch({
-                          type: "UPDATE_LAYER",
-                          payload: {
+                        dispatch(
+                          updateLayer({
                             id: selectedLayer.id,
                             updates: { underline: !selectedLayer.underline },
-                          },
-                        })
+                          })
+                        )
                       }
                     >
                       <Underline className="w-4 h-4" />
@@ -290,12 +269,7 @@ export function Sidebar() {
                     <Button
                       variant="destructive"
                       size="icon"
-                      onClick={() =>
-                        dispatch({
-                          type: "DELETE_LAYER",
-                          payload: selectedLayer.id,
-                        })
-                      }
+                      onClick={() => dispatch(deleteLayer(selectedLayer.id))}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -313,9 +287,8 @@ export function Sidebar() {
                         className="w-4 h-4"
                         checked={selectedLayer.effects.shadow.enabled}
                         onChange={(e) =>
-                          dispatch({
-                            type: "UPDATE_LAYER",
-                            payload: {
+                          dispatch(
+                            updateLayer({
                               id: selectedLayer.id,
                               updates: {
                                 effects: {
@@ -326,8 +299,8 @@ export function Sidebar() {
                                   },
                                 },
                               },
-                            },
-                          })
+                            })
+                          )
                         }
                       />
                       <Label>Enable Shadow</Label>
@@ -340,9 +313,8 @@ export function Sidebar() {
                             type="color"
                             value={selectedLayer.effects.shadow.color}
                             onChange={(e) =>
-                              dispatch({
-                                type: "UPDATE_LAYER",
-                                payload: {
+                              dispatch(
+                                updateLayer({
                                   id: selectedLayer.id,
                                   updates: {
                                     effects: {
@@ -353,8 +325,8 @@ export function Sidebar() {
                                       },
                                     },
                                   },
-                                },
-                              })
+                                })
+                              )
                             }
                           />
                         </div>
@@ -366,9 +338,8 @@ export function Sidebar() {
                             max="20"
                             value={selectedLayer.effects.shadow.blur}
                             onChange={(e) =>
-                              dispatch({
-                                type: "UPDATE_LAYER",
-                                payload: {
+                              dispatch(
+                                updateLayer({
                                   id: selectedLayer.id,
                                   updates: {
                                     effects: {
@@ -379,8 +350,8 @@ export function Sidebar() {
                                       },
                                     },
                                   },
-                                },
-                              })
+                                })
+                              )
                             }
                           />
                         </div>
@@ -398,9 +369,8 @@ export function Sidebar() {
                         className="w-4 h-4"
                         checked={selectedLayer.effects.outline.enabled}
                         onChange={(e) =>
-                          dispatch({
-                            type: "UPDATE_LAYER",
-                            payload: {
+                          dispatch(
+                            updateLayer({
                               id: selectedLayer.id,
                               updates: {
                                 effects: {
@@ -411,8 +381,8 @@ export function Sidebar() {
                                   },
                                 },
                               },
-                            },
-                          })
+                            })
+                          )
                         }
                       />
                       <Label>Enable Outline</Label>
@@ -425,9 +395,8 @@ export function Sidebar() {
                             type="color"
                             value={selectedLayer.effects.outline.color}
                             onChange={(e) =>
-                              dispatch({
-                                type: "UPDATE_LAYER",
-                                payload: {
+                              dispatch(
+                                updateLayer({
                                   id: selectedLayer.id,
                                   updates: {
                                     effects: {
@@ -438,8 +407,8 @@ export function Sidebar() {
                                       },
                                     },
                                   },
-                                },
-                              })
+                                })
+                              )
                             }
                           />
                         </div>
@@ -451,9 +420,8 @@ export function Sidebar() {
                             max="10"
                             value={selectedLayer.effects.outline.width}
                             onChange={(e) =>
-                              dispatch({
-                                type: "UPDATE_LAYER",
-                                payload: {
+                              dispatch(
+                                updateLayer({
                                   id: selectedLayer.id,
                                   updates: {
                                     effects: {
@@ -464,8 +432,8 @@ export function Sidebar() {
                                       },
                                     },
                                   },
-                                },
-                              })
+                                })
+                              )
                             }
                           />
                         </div>
