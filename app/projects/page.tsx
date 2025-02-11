@@ -5,7 +5,7 @@ import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { FrameSettings } from "../frame/constants";
 import { renderCanvas } from "../frame/utils";
 
@@ -34,13 +34,13 @@ const CardFooter = dynamic(
 );
 
 export default function Home() {
-  const [frames, setFrames] = useState<FrameSettings[]>([]);
-
   const router = useRouter();
   const {
+    frames,
     currentFrameSettings,
     updateFrameSettings,
     updateCurrentFrameSettings,
+    deleteFrame: handleDeleteFrame,
   } = useFrameSettings();
 
   const onProjectClick = (frame: FrameSettings) => {
@@ -59,27 +59,26 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {frames.length === 0 && <div>Nothing to see here.</div>}
             {frames.length > 0 &&
-              frames.map((frame, i) => (
+              frames.map((frame) => (
                 <Card
-                  key={i}
+                  key={frame.id}
                   onClick={() => onProjectClick(frame)}
                   className="cursor-pointer"
                 >
                   <CardHeader>
-                    <CardTitle>
-                      {currentFrameSettings.documentName ?? "(no name)"}
-                    </CardTitle>
+                    <CardTitle>{frame.documentName ?? "(no name)"}</CardTitle>
                     <CardDescription>Last modified: Recently</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <FrameCanvas frame={currentFrameSettings} />
+                    <FrameCanvas frame={frame} />
                   </CardContent>
                   <CardFooter className="flex justify-end">
                     <Trash2
                       size={16}
-                      onClick={() =>
-                        setFrames(frames.filter((_, index) => index !== i))
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteFrame(frame.id);
+                      }}
                     />
                   </CardFooter>
                 </Card>

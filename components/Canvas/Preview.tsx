@@ -26,8 +26,8 @@ const defaultDragState = {
 export default function Preview() {
   const {
     currentFrameSettings,
-    updateFrameSettings,
     updateCurrentFrameSettings,
+    saveFrame,
     isCurrentFrameSettingsSaved,
   } = useFrameSettings();
 
@@ -84,10 +84,13 @@ export default function Preview() {
   };
 
   const handleSave = () => {
-    if (currentFrameSettings.id.length == 0) {
-      updateCurrentFrameSettings({ id: v4() });
+    if (currentFrameSettings.id.length === 0) {
+      const frameWithId = { ...currentFrameSettings, id: v4() };
+      updateCurrentFrameSettings({ id: frameWithId.id });
+      saveFrame(frameWithId);
+    } else {
+      saveFrame(currentFrameSettings);
     }
-    updateFrameSettings(currentFrameSettings);
   };
 
   const handleDownloadCanvas = () => {
