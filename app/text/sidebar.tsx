@@ -175,6 +175,7 @@ export function Sidebar() {
                     value={selectedLayer.fontSize}
                     onChange={(e) => {
                       const value = parseInt(e.target.value);
+                      if (isNaN(value)) return;
                       dispatch(
                         updateLayer({
                           id: selectedLayer.id,
@@ -187,29 +188,31 @@ export function Sidebar() {
                     onKeyDown={(e) => {
                       if (e.key === "ArrowUp") {
                         e.preventDefault();
-                        const value = selectedLayer.fontSize + 1;
-                        dispatch({
-                          type: "UPDATE_LAYER",
-                          payload: {
+                        dispatch(
+                          updateLayer({
                             id: selectedLayer.id,
                             updates: {
-                              fontSize: selectedLayer.fontSize + 1,
+                              fontSize: Math.max(
+                                1,
+                                Math.min(200, selectedLayer.fontSize + 1)
+                              ),
                             },
-                          },
-                        });
+                          })
+                        );
                       }
                       if (e.key === "ArrowDown") {
                         e.preventDefault();
-                        const value = selectedLayer.fontSize - 1;
-                        dispatch({
-                          type: "UPDATE_LAYER",
-                          payload: {
+                        dispatch(
+                          updateLayer({
                             id: selectedLayer.id,
                             updates: {
-                              fontSize: selectedLayer.fontSize - 1,
+                              fontSize: Math.max(
+                                1,
+                                Math.min(200, selectedLayer.fontSize - 1)
+                              ),
                             },
-                          },
-                        });
+                          })
+                        );
                       }
                     }}
                   />
