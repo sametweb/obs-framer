@@ -2,12 +2,10 @@ import { FrameSettings } from "@/app/frame/constants";
 import {
   deleteFrame,
   saveFrame,
-  selectCurrentFrameSettings,
   selectFrameSettings,
   selectFrames,
   selectIsCurrentFrameSettingsSaved,
   selectIsDefaultSettings,
-  updateCurrentFrameSettings,
   updateFrameSettings,
 } from "@/lib/store/frameSettingsSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
@@ -15,7 +13,6 @@ import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 export function useFrameSettings() {
   const dispatch = useAppDispatch();
   const frameSettings = useAppSelector(selectFrameSettings);
-  const currentFrameSettings = useAppSelector(selectCurrentFrameSettings);
   const frames = useAppSelector(selectFrames);
   const isDefaultSettings = useAppSelector(selectIsDefaultSettings);
   const isCurrentFrameSettingsSaved = useAppSelector(
@@ -28,12 +25,6 @@ export function useFrameSettings() {
     dispatch(updateFrameSettings(partialSettings));
   };
 
-  const updateCurrentFrameSettingsHandler = (
-    partialSettings: Partial<FrameSettings>
-  ) => {
-    dispatch(updateCurrentFrameSettings(partialSettings));
-  };
-
   const saveFrameHandler = (frame: FrameSettings) => {
     dispatch(saveFrame(frame));
   };
@@ -44,10 +35,10 @@ export function useFrameSettings() {
 
   return {
     frameSettings,
-    currentFrameSettings,
+    currentFrameSettings: frameSettings, // For backward compatibility
     frames,
     updateFrameSettings: updateFrameSettingsHandler,
-    updateCurrentFrameSettings: updateCurrentFrameSettingsHandler,
+    updateCurrentFrameSettings: updateFrameSettingsHandler, // For backward compatibility
     saveFrame: saveFrameHandler,
     deleteFrame: deleteFrameHandler,
     isDefaultSettings,
