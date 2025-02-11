@@ -2,6 +2,8 @@
 
 import { frameRoute } from "@/components/Navigation/routes";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
+import { useAppDispatch } from "@/lib/store/hooks";
+import { setState } from "@/lib/store/textEditorSlice";
 import { Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -35,6 +37,7 @@ const CardFooter = dynamic(
 
 export default function Home() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const {
     frames,
     currentFrameSettings,
@@ -46,6 +49,9 @@ export default function Home() {
   const onProjectClick = (frame: FrameSettings) => {
     updateFrameSettings(frame);
     updateCurrentFrameSettings(frame);
+    dispatch(
+      setState({ layers: frame.textLayers || [], selectedLayerId: null })
+    );
     router.push(frameRoute.path);
   };
 
@@ -94,7 +100,11 @@ function FrameCanvas(props: React.PropsWithChildren<{ frame: FrameSettings }>) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    renderCanvas(ref, props.frame);
+    const state = {
+      layers: props.frame.textLayers || [],
+      selectedLayerId: null,
+    };
+    renderCanvas(ref, props.frame, state);
   }, [props.frame]);
 
   return (

@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFonts } from "@/hooks/use-fonts";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { GOOGLE_FONTS } from "@/lib/fonts";
+import { updateTextLayers } from "@/lib/store/frameSettingsSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import {
   addLayer,
@@ -22,7 +23,7 @@ import {
   updateLayer,
 } from "@/lib/store/textEditorSlice";
 import { Bold, Italic, Trash2, Underline } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function Sidebar() {
   const {
@@ -36,6 +37,10 @@ export function Sidebar() {
   const { fontsLoaded } = useFonts();
 
   const selectedLayer = layers.find((layer) => layer.id === selectedLayerId);
+
+  useEffect(() => {
+    dispatch(updateTextLayers(layers));
+  }, [layers, dispatch]);
 
   const handleAddLayer = () => {
     if (!newText.trim()) return;

@@ -1,6 +1,7 @@
 import { FrameSettings, defaultFrameSettings } from "@/app/frame/constants";
 import { deepCompare } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { TextLayer } from "../types";
 
 interface FrameSettingsState {
   frameSettings: FrameSettings;
@@ -32,6 +33,9 @@ const frameSettingsSlice = createSlice({
         ...state.currentFrameSettings,
         ...action.payload,
       };
+    },
+    updateTextLayers: (state, action: PayloadAction<TextLayer[]>) => {
+      state.currentFrameSettings.textLayers = action.payload;
     },
     saveFrame: (state, action: PayloadAction<FrameSettings>) => {
       const existingFrameIndex = state.frames.findIndex(
@@ -84,6 +88,7 @@ export const selectIsCurrentFrameSettingsSaved = (state: {
 export const {
   updateFrameSettings,
   updateCurrentFrameSettings,
+  updateTextLayers,
   saveFrame,
   deleteFrame,
 } = frameSettingsSlice.actions;
