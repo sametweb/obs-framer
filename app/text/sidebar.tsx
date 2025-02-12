@@ -37,7 +37,7 @@ import { useEffect, useState } from "react";
 
 export function Sidebar() {
   const {
-    currentFrameSettings: { screenWidth, screenHeight },
+    frameSettings: { screenWidth, screenHeight },
   } = useFrameSettings();
   const dispatch = useAppDispatch();
   const { layers, selectedLayerId } = useAppSelector(

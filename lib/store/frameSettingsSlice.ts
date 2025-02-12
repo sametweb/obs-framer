@@ -74,9 +74,7 @@ export const selectIsDefaultSettings = (state: {
   frameSettings: FrameSettingsState;
 }) => deepCompare(state.frameSettings.frameSettings, defaultFrameSettings);
 
-export const selectIsCurrentFrameSettingsSaved = (state: {
-  frameSettings: FrameSettingsState;
-}) => {
+export const selectIsSaved = (state: { frameSettings: FrameSettingsState }) => {
   const { frameSettings, frames } = state.frameSettings;
   if (!frameSettings.id) return false;
 

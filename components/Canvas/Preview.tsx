@@ -24,12 +24,8 @@ const defaultDragState = {
 };
 
 export default function Preview() {
-  const {
-    currentFrameSettings,
-    updateCurrentFrameSettings,
-    saveFrame,
-    isCurrentFrameSettingsSaved,
-  } = useFrameSettings();
+  const { frameSettings, updateFrameSettings, saveFrame, isSaved } =
+    useFrameSettings();
 
   const dispatch = useAppDispatch();
   const state = useAppSelector((state) => state.textEditor);
@@ -40,18 +36,18 @@ export default function Preview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const editableTitleRef = useRef<HTMLHeadingElement>(null);
 
-  const { screenHeight, screenWidth, documentName } = currentFrameSettings;
+  const { screenHeight, screenWidth, documentName } = frameSettings;
 
   useEffect(() => {
     if (!canvasRef.current) return;
-    renderCanvas(canvasRef, currentFrameSettings, state);
-  }, [state, state.layers, state.selectedLayerId, currentFrameSettings]);
+    renderCanvas(canvasRef, frameSettings, state);
+  }, [state, state.layers, state.selectedLayerId, frameSettings]);
 
   const handleSaveTitle: FocusEventHandler<HTMLHeadingElement> = (e) => {
     if (editableTitleRef.current != null) {
       const newDocumentName = e.target.textContent ?? "";
       if (newDocumentName != documentName) {
-        updateCurrentFrameSettings({ documentName: newDocumentName });
+        updateFrameSettings({ documentName: newDocumentName });
       } else {
         onSaveTitle();
       }
@@ -84,12 +80,12 @@ export default function Preview() {
   };
 
   const handleSave = () => {
-    if (currentFrameSettings.id.length === 0) {
-      const frameWithId = { ...currentFrameSettings, id: v4() };
-      updateCurrentFrameSettings({ id: frameWithId.id });
+    if (frameSettings.id.length === 0) {
+      const frameWithId = { ...frameSettings, id: v4() };
+      updateFrameSettings({ id: frameWithId.id });
       saveFrame(frameWithId);
     } else {
-      saveFrame(currentFrameSettings);
+      saveFrame(frameSettings);
     }
   };
 
@@ -267,12 +263,8 @@ export default function Preview() {
             )}
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={handleSave}
-              disabled={isCurrentFrameSettingsSaved}
-            >
-              {isCurrentFrameSettingsSaved ? "Changes saved" : "Save"}
+            <Button variant="outline" onClick={handleSave} disabled={isSaved}>
+              {isSaved ? "Changes saved" : "Save"}
               <Save className="ml-2 h-4 w-4" />
             </Button>
             <Button variant="outline" onClick={handleDownloadCanvas}>

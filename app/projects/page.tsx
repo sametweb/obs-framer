@@ -41,15 +41,14 @@ export default function Home() {
   const dispatch = useAppDispatch();
   const {
     frames,
-    currentFrameSettings,
+
     updateFrameSettings,
-    updateCurrentFrameSettings,
+
     deleteFrame: handleDeleteFrame,
   } = useFrameSettings();
 
   const onProjectClick = (frame: FrameSettings) => {
     updateFrameSettings(frame);
-    updateCurrentFrameSettings(frame);
     dispatch(
       setState({ layers: frame.textLayers || [], selectedLayerId: null })
     );

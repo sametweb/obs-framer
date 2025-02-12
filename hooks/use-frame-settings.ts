@@ -4,8 +4,8 @@ import {
   saveFrame,
   selectFrameSettings,
   selectFrames,
-  selectIsCurrentFrameSettingsSaved,
   selectIsDefaultSettings,
+  selectIsSaved,
   updateFrameSettings,
 } from "@/lib/store/frameSettingsSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
@@ -15,9 +15,7 @@ export function useFrameSettings() {
   const frameSettings = useAppSelector(selectFrameSettings);
   const frames = useAppSelector(selectFrames);
   const isDefaultSettings = useAppSelector(selectIsDefaultSettings);
-  const isCurrentFrameSettingsSaved = useAppSelector(
-    selectIsCurrentFrameSettingsSaved
-  );
+  const isSaved = useAppSelector(selectIsSaved);
 
   const updateFrameSettingsHandler = (
     partialSettings: Partial<FrameSettings>
@@ -35,13 +33,11 @@ export function useFrameSettings() {
 
   return {
     frameSettings,
-    currentFrameSettings: frameSettings, // For backward compatibility
     frames,
     updateFrameSettings: updateFrameSettingsHandler,
-    updateCurrentFrameSettings: updateFrameSettingsHandler, // For backward compatibility
     saveFrame: saveFrameHandler,
     deleteFrame: deleteFrameHandler,
     isDefaultSettings,
-    isCurrentFrameSettingsSaved,
+    isSaved,
   };
 }

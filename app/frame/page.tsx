@@ -14,7 +14,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { ArrowLeftRight, Plus, Trash2 } from "lucide-react";
-import { commonResolutions, directions, FrameSettings } from "./constants";
+import { commonResolutions, directions } from "./constants";
 import {
   getGradientStyle,
   GradientStop,
@@ -22,8 +22,7 @@ import {
 } from "./utils";
 
 export default function Home() {
-  const { currentFrameSettings, updateCurrentFrameSettings } =
-    useFrameSettings();
+  const { frameSettings, updateFrameSettings } = useFrameSettings();
 
   const {
     frameBottomWidth,
@@ -36,11 +35,7 @@ export default function Home() {
     frameRightWidth,
     frameSpacing,
     frameTopWidth,
-  } = currentFrameSettings;
-
-  const updateFrameSettings = (newSettings: Partial<FrameSettings>) => {
-    updateCurrentFrameSettings(newSettings);
-  };
+  } = frameSettings;
 
   const swapFrameLeftAndRight = () => {
     const left = frameLeftWidth;
