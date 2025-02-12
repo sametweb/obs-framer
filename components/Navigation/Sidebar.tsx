@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { HelpCircle, Settings } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   frameRoute,
   homeRoute,
@@ -25,6 +26,8 @@ const bottomNavItems: NavItem[] = [
 ];
 
 export function Sidebar() {
+  const pathname = usePathname();
+
   return (
     <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-16 border-r bg-background z-40">
       <div className="flex h-full flex-col justify-between py-4">
@@ -34,7 +37,7 @@ export function Sidebar() {
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
                   <Button
-                    variant="ghost"
+                    variant={pathname === path ? "default" : "ghost"}
                     size="icon"
                     className={cn(
                       "h-10 w-10 rounded-lg",
