@@ -17,7 +17,7 @@ interface FrameSettingsState {
 }
 
 const initialState: FrameSettingsState = {
-  frameSettings: defaultFrameSettings(),
+  frameSettings: null,
   frames: [],
 };
 

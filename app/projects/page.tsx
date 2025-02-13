@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { openFrameEditor } from "@/lib/store/frameSettingsSlice";
 import { useAppDispatch } from "@/lib/store/hooks";
+import { setState } from "@/lib/store/textEditorSlice";
 import { formatDistanceToNow } from "date-fns";
 import { Plus, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -43,11 +44,17 @@ export default function Home() {
   const { frames, deleteFrame } = useFrameSettings();
 
   const onProjectClick = (frame: FrameSettings) => {
+    // Reset text editor state before opening the frame
+    dispatch(
+      setState({ layers: frame.textLayers || [], selectedLayerId: null })
+    );
     dispatch(openFrameEditor(frame));
     router.push(frameRoute.path);
   };
 
   const onAddNewClick = () => {
+    // Reset text editor state before creating a new frame
+    dispatch(setState({ layers: [], selectedLayerId: null }));
     dispatch(openFrameEditor());
     router.push(frameRoute.path);
   };

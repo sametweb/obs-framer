@@ -2,7 +2,11 @@ import { renderCanvas } from "@/app/frame/utils";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { closeFrameEditor } from "@/lib/store/frameSettingsSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { selectLayer, updateLayer } from "@/lib/store/textEditorSlice";
+import {
+  selectLayer,
+  setState,
+  updateLayer,
+} from "@/lib/store/textEditorSlice";
 import { DragState, TextLayer } from "@/lib/types";
 import clsx from "clsx";
 import { Check, Download, Edit, Save, X } from "lucide-react";
@@ -161,6 +165,7 @@ export default function Preview() {
 
   const handleXClick = () => {
     dispatch(closeFrameEditor());
+    dispatch(setState({ layers: [], selectedLayerId: null }));
   };
 
   const getMousePos = (e: React.MouseEvent) => {
