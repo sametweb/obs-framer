@@ -16,6 +16,7 @@ import { Slider } from "@/components/ui/slider";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { ArrowLeftRight, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { commonResolutions, directions } from "./constants";
 import {
   getGradientStyle,
@@ -27,9 +28,14 @@ export default function Home() {
   const { frameSettings, updateFrameSettings } = useFrameSettings();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!frameSettings) {
+      router.push(projectsRoute.path);
+    }
+  }, [frameSettings, router]);
+
   if (!frameSettings) {
-    router.push(projectsRoute.path);
-    return;
+    return null;
   }
 
   const {
