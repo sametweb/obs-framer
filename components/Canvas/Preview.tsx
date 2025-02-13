@@ -1,4 +1,7 @@
+"use client";
 import { renderCanvas } from "@/app/frame/utils";
+import { projectsRoute, textRoute } from "@/components/Navigation/routes";
+import { Button } from "@/components/ui/button";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { closeFrameEditor } from "@/lib/store/frameSettingsSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
@@ -6,12 +9,14 @@ import {
   selectLayer,
   setState,
   updateLayer,
+  addLayer,
 } from "@/lib/store/textEditorSlice";
-import { DragState, TextLayer } from "@/lib/types";
+import { DragState, ImageLayer, Layer } from "@/lib/types";
 import clsx from "clsx";
-import { Check, Download, Edit, Save, X } from "lucide-react";
+import * as Icons from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
+  ChangeEvent,
   FocusEventHandler,
   KeyboardEventHandler,
   useCallback,
@@ -20,8 +25,7 @@ import {
   useState,
 } from "react";
 import { v4 } from "uuid";
-import { projectsRoute, textRoute } from "../Navigation/routes";
-import { Button } from "../ui/button";
+import { isPointInLayer, isPointInResizeHandle } from "@/app/frame/utils";
 
 const defaultDragState = {
   isDragging: false,
@@ -29,6 +33,11 @@ const defaultDragState = {
   startY: 0,
   layerStartX: 0,
   layerStartY: 0,
+  layerStartWidth: 0,
+  layerStartHeight: 0,
+  resizing: false,
+  resizeHandle: undefined,
+  aspectRatio: 1,
 };
 
 export default function Preview() {
@@ -44,6 +53,8 @@ export default function Preview() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const editableTitleRef = useRef<HTMLHeadingElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (!frameSettings) {
@@ -54,6 +65,33 @@ export default function Preview() {
     if (!canvasRef.current) return;
     renderCanvas(canvasRef, frameSettings, state);
   }, [state, state.layers, state.selectedLayerId, frameSettings, router]);
+
+  // Debounced auto-save effect
+  useEffect(() => {
+    if (!frameSettings || !state.layers.length) return;
+
+    // Clear any existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set a new timeout for the auto-save
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      const updatedSettings = {
+        ...frameSettings,
+        textLayers: state.layers,
+        modifiedAt: new Date().toISOString(),
+      };
+      updateFrameSettings(updatedSettings);
+    }, 1000); // Debounce for 1 second
+
+    // Cleanup
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [state.layers, frameSettings, updateFrameSettings]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -91,8 +129,8 @@ export default function Preview() {
         updateLayer({
           id: state.selectedLayerId,
           updates: {
-            x: layer.x + dx,
-            y: layer.y + dy,
+            x: ('x' in layer ? layer.x : 0) + dx,
+            y: ('y' in layer ? layer.y : 0) + dy,
           },
         })
       );
@@ -105,10 +143,43 @@ export default function Preview() {
   const handleLayerSelect = useCallback(
     (layerId: string) => {
       dispatch(selectLayer(layerId));
-      router.push(textRoute.path);
+      const layer = state.layers.find(layer => layer.id === layerId);
+      if (layer && 'text' in layer) {
+        router.push(textRoute.path);
+      }
     },
-    [dispatch, router]
+    [dispatch, router, state.layers]
   );
+
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const image = new Image();
+      image.onload = () => {
+        const aspectRatio = image.width / image.height;
+        const newWidth = Math.min(400, image.width);
+        const newHeight = newWidth / aspectRatio;
+
+        const imageLayer: ImageLayer = {
+          id: v4(),
+          type: 'image',
+          x: frameSettings!.screenWidth / 2 - newWidth / 2,
+          y: frameSettings!.screenHeight / 2 - newHeight / 2,
+          width: newWidth,
+          height: newHeight,
+          url: event.target?.result as string,
+        };
+
+        dispatch(addLayer(imageLayer));
+        dispatch(selectLayer(imageLayer.id));
+      };
+      image.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   if (!frameSettings) {
     return null;
@@ -178,6 +249,7 @@ export default function Preview() {
   const handleXClick = () => {
     dispatch(closeFrameEditor());
     dispatch(setState({ layers: [], selectedLayerId: null }));
+    router.push(projectsRoute.path);
   };
 
   const getMousePos = (e: React.MouseEvent) => {
@@ -194,42 +266,47 @@ export default function Preview() {
     };
   };
 
-  const isPointInTextBounds = (x: number, y: number, layer: TextLayer) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return false;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return false;
-
-    ctx.save();
-    ctx.font = `${layer.italic ? "italic " : ""}${layer.bold ? "bold " : ""}${
-      layer.fontSize
-    }px ${layer.fontFamily}`;
-    const metrics = ctx.measureText(layer.text);
-    const height = layer.fontSize;
-    ctx.restore();
-
-    return (
-      x >= layer.x &&
-      x <= layer.x + metrics.width &&
-      y >= layer.y - height &&
-      y <= layer.y
-    );
-  };
-
   const handleMouseDown = (e: React.MouseEvent) => {
     const pos = getMousePos(e);
 
     // Check each layer in reverse order (top to bottom)
     for (let i = state.layers.length - 1; i >= 0; i--) {
       const layer = state.layers[i];
-      if (isPointInTextBounds(pos.x, pos.y, layer)) {
+      
+      // Check resize handles for image layers
+      if ('url' in layer && layer.id === state.selectedLayerId) {
+        const resizeHandles: Array<'nw' | 'ne' | 'sw' | 'se'> = ['nw', 'ne', 'sw', 'se'];
+        for (const handle of resizeHandles) {
+          if (isPointInResizeHandle(pos.x, pos.y, layer, handle)) {
+            setDragState({
+              ...defaultDragState,
+              isDragging: true,
+              resizing: true,
+              resizeHandle: handle,
+              startX: pos.x,
+              startY: pos.y,
+              layerStartX: layer.x,
+              layerStartY: layer.y,
+              layerStartWidth: layer.width,
+              layerStartHeight: layer.height,
+              aspectRatio: layer.width / layer.height,
+            });
+            return;
+          }
+        }
+      }
+
+      if (isPointInLayer(pos.x, pos.y, layer)) {
         setDragState({
+          ...defaultDragState,
           isDragging: true,
           startX: pos.x,
           startY: pos.y,
-          layerStartX: layer.x,
-          layerStartY: layer.y,
+          layerStartX: 'x' in layer ? layer.x : 0,
+          layerStartY: 'y' in layer ? layer.y : 0,
+          layerStartWidth: 'width' in layer ? layer.width : 0,
+          layerStartHeight: 'height' in layer ? layer.height : 0,
+          aspectRatio: 'width' in layer ? layer.width / layer.height : 1,
         });
         handleLayerSelect(layer.id);
         return;
@@ -242,18 +319,74 @@ export default function Preview() {
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!dragState.isDragging || !state.selectedLayerId) return;
     const pos = getMousePos(e);
-    const dx = pos.x - dragState.startX;
-    const dy = pos.y - dragState.startY;
+    
+    const layer = state.layers.find(l => l.id === state.selectedLayerId);
+    if (!layer) return;
 
-    dispatch(
-      updateLayer({
-        id: state.selectedLayerId,
-        updates: {
-          x: dragState.layerStartX + dx,
-          y: dragState.layerStartY + dy,
-        },
-      })
-    );
+    if (dragState.resizing && 'url' in layer) {
+      const dx = pos.x - dragState.startX;
+      const dy = pos.y - dragState.startY;
+      
+      let newWidth = dragState.layerStartWidth;
+      let newHeight = dragState.layerStartHeight;
+      let newX = layer.x;
+      let newY = layer.y;
+
+      switch (dragState.resizeHandle) {
+        case 'se':
+          newWidth = dragState.layerStartWidth + dx;
+          newHeight = newWidth / dragState.aspectRatio;
+          break;
+        case 'sw':
+          newWidth = dragState.layerStartWidth - dx;
+          newHeight = newWidth / dragState.aspectRatio;
+          newX = dragState.layerStartX + dx;
+          break;
+        case 'ne':
+          newWidth = dragState.layerStartWidth + dx;
+          newHeight = newWidth / dragState.aspectRatio;
+          newY = dragState.layerStartY + (dragState.layerStartHeight - newHeight);
+          break;
+        case 'nw':
+          newWidth = dragState.layerStartWidth - dx;
+          newHeight = newWidth / dragState.aspectRatio;
+          newX = dragState.layerStartX + dx;
+          newY = dragState.layerStartY + (dragState.layerStartHeight - newHeight);
+          break;
+      }
+
+      // Maintain minimum size
+      const minSize = 20;
+      if (newWidth < minSize) {
+        newWidth = minSize;
+        newHeight = minSize / dragState.aspectRatio;
+      }
+
+      dispatch(
+        updateLayer({
+          id: state.selectedLayerId,
+          updates: {
+            x: newX,
+            y: newY,
+            width: newWidth,
+            height: newHeight,
+          },
+        })
+      );
+    } else {
+      const dx = pos.x - dragState.startX;
+      const dy = pos.y - dragState.startY;
+
+      dispatch(
+        updateLayer({
+          id: state.selectedLayerId,
+          updates: {
+            x: dragState.layerStartX + dx,
+            y: dragState.layerStartY + dy,
+          },
+        })
+      );
+    }
   };
 
   const handleMouseUp = () => {
@@ -279,13 +412,13 @@ export default function Preview() {
               {documentName}
             </h2>
             {isEditingTitle ? (
-              <Check
+              <Icons.Check
                 size={16}
                 onClick={onSaveTitle}
                 className="cursor-pointer"
               />
             ) : (
-              <Edit
+              <Icons.Edit
                 size={16}
                 onClick={onEditTitle}
                 className="cursor-pointer"
@@ -293,6 +426,20 @@ export default function Preview() {
             )}
           </div>
           <div className="flex gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/png"
+              className="hidden"
+              onChange={handleImageUpload}
+            />
+            <Button
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Icons.Image className="h-4 w-4 mr-2" />
+              Add Image
+            </Button>
             <Button
               variant={isSaved ? "ghost" : "outline"}
               onClick={handleSave}
@@ -301,14 +448,14 @@ export default function Preview() {
               {isSaved ? (
                 <span>Changes saved</span>
               ) : (
-                <Save className=" h-4 w-4" />
+                <Icons.Save className="h-4 w-4" />
               )}
             </Button>
             <Button variant="outline" onClick={handleDownloadCanvas}>
-              <Download className="h-4 w-4" />
+              <Icons.Download className="h-4 w-4" />
             </Button>
             <Button variant="default" onClick={handleXClick}>
-              <X className="h-4 w-4" />
+              <Icons.X className="h-4 w-4" />
             </Button>
           </div>
         </div>

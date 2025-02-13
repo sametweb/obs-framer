@@ -15,8 +15,8 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { ArrowLeftRight, Plus, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { commonResolutions, directions } from "./constants";
 import {
   getGradientStyle,

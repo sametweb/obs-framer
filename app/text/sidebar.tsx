@@ -25,6 +25,7 @@ import {
   selectLayer,
   updateLayer,
 } from "@/lib/store/textEditorSlice";
+import { TextLayer } from "@/lib/types";
 import {
   Bold,
   ChevronDown,
@@ -44,13 +45,16 @@ export function Sidebar() {
   const [newText, setNewText] = useState("");
   const { fontsLoaded } = useFonts();
 
-  const selectedLayer = layers.find((layer) => layer.id === selectedLayerId);
+  // Find the selected layer and ensure it's a text layer
+  const selectedLayer = layers.find((layer): layer is TextLayer => 
+    layer.id === selectedLayerId && 'text' in layer
+  );
 
   useEffect(() => {
     dispatch(updateTextLayers(layers));
   }, [layers, dispatch]);
 
-  if (!frameSettings) return;
+  if (!frameSettings) return null;
 
   const handleAddLayer = () => {
     if (!newText.trim()) return;
@@ -105,6 +109,9 @@ export function Sidebar() {
   // Create a reversed copy of the layers array for display
   const displayLayers = [...layers].reverse();
 
+  // Filter to show only text layers in the sidebar
+  const textLayers = displayLayers.filter((layer): layer is TextLayer => 'text' in layer);
+
   return (
     <aside className="w-[300px] border-r border-border bg-card p-6">
       <div className="space-y-6">
@@ -129,15 +136,15 @@ export function Sidebar() {
         </div>
 
         <div className="space-y-2">
-          <Label>Layers</Label>
+          <Label>Text Layers</Label>
           <ScrollArea className="h-[200px] border rounded-md p-2">
-            {layers.length === 0 ? (
+            {textLayers.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No layers yet. Add some text to get started.
+                No text layers yet. Add some text to get started.
               </p>
             ) : (
               <div className="space-y-2">
-                {displayLayers.map((layer, index) => (
+                {textLayers.map((layer, index) => (
                   <div
                     key={layer.id}
                     className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer ${
@@ -164,7 +171,7 @@ export function Sidebar() {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6"
-                        disabled={index === layers.length - 1}
+                        disabled={index === textLayers.length - 1}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleMoveLayer(layer.id, "up");

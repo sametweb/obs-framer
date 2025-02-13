@@ -1,8 +1,27 @@
-import { TextEditorState, TextLayer } from "@/lib/types";
+import { ImageLayer, Layer, TextEditorState, TextLayer } from "@/lib/types";
 import { RefObject } from "react";
 import { FrameSettings } from "./constants";
 
-export const renderCanvas = (
+// Cache for loaded images
+const imageCache = new Map<string, HTMLImageElement>();
+
+const loadImage = (url: string): Promise<HTMLImageElement> => {
+  if (imageCache.has(url)) {
+    return Promise.resolve(imageCache.get(url)!);
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      imageCache.set(url, img);
+      resolve(img);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+};
+
+export const renderCanvas = async (
   canvasRef: RefObject<HTMLCanvasElement>,
   frameSettings: FrameSettings,
   state?: TextEditorState
@@ -10,20 +29,26 @@ export const renderCanvas = (
   const canvas = canvasRef.current;
   if (!canvas) return;
 
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return;
 
-  // Clear the entire canvas
+  // Clear the canvas to be fully transparent
   ctx.clearRect(0, 0, frameSettings.screenWidth, frameSettings.screenHeight);
 
   // Draw the frame gradient background
   fillGradient(frameSettings.frameGradient, ctx, canvas);
   ctx.fillRect(0, 0, frameSettings.screenWidth, frameSettings.screenHeight);
 
-  // Draw the frame (which creates the cutout)
-  ctx.save();
+  // Create a temporary canvas for the frame mask
+  const maskCanvas = document.createElement('canvas');
+  maskCanvas.width = canvas.width;
+  maskCanvas.height = canvas.height;
+  const maskCtx = maskCanvas.getContext('2d');
+  if (!maskCtx) return;
+
+  // Draw the frame cutouts on the mask canvas
   drawFrame(
-    ctx,
+    maskCtx,
     frameSettings.screenWidth,
     frameSettings.screenHeight,
     frameSettings.frameLeftWidth,
@@ -36,14 +61,180 @@ export const renderCanvas = (
     frameSettings.frameInnerBorderWidth,
     frameSettings.frameInnerBorderColor
   );
-  ctx.restore();
 
-  // Only draw text if state is provided
+  // Use the mask to cut out the frame
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.drawImage(maskCanvas, 0, 0);
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Draw the frame borders
+  if (frameSettings.frameInnerBorderWidth > 0) {
+    const borderCanvas = document.createElement('canvas');
+    borderCanvas.width = canvas.width;
+    borderCanvas.height = canvas.height;
+    const borderCtx = borderCanvas.getContext('2d');
+    if (!borderCtx) return;
+
+    drawFrameBorders(
+      borderCtx,
+      frameSettings.screenWidth,
+      frameSettings.screenHeight,
+      frameSettings.frameLeftWidth,
+      frameSettings.frameRightWidth,
+      frameSettings.frameTopWidth,
+      frameSettings.frameBottomWidth,
+      frameSettings.frameRadius,
+      frameSettings.frameSpacing,
+      frameSettings.frameCount,
+      frameSettings.frameInnerBorderWidth,
+      frameSettings.frameInnerBorderColor
+    );
+
+    ctx.drawImage(borderCanvas, 0, 0);
+  }
+
+  // Only draw layers if state is provided
   if (state) {
     ctx.save();
-    drawText(ctx, state.layers, state.selectedLayerId);
+    // Pre-load all images before drawing
+    await Promise.all(
+      state.layers
+        .filter((layer): layer is ImageLayer => 'url' in layer)
+        .map(layer => loadImage(layer.url))
+    );
+
+    // Draw all layers
+    for (const layer of state.layers) {
+      if ('text' in layer) {
+        drawTextLayer(ctx, layer, layer.id === state.selectedLayerId);
+      } else if ('url' in layer) {
+        await drawImageLayer(ctx, layer, layer.id === state.selectedLayerId);
+      }
+    }
     ctx.restore();
   }
+};
+
+const drawTextLayer = (
+  ctx: CanvasRenderingContext2D,
+  layer: TextLayer,
+  isSelected: boolean
+) => {
+  ctx.save();
+  ctx.font = `${layer.italic ? "italic " : ""}${layer.bold ? "bold " : ""}${
+    layer.fontSize
+  }px ${layer.fontFamily}`;
+  ctx.fillStyle = layer.color;
+
+  // Apply effects
+  if (layer.effects.shadow.enabled) {
+    ctx.shadowColor = layer.effects.shadow.color;
+    ctx.shadowBlur = layer.effects.shadow.blur;
+    ctx.shadowOffsetX = layer.effects.shadow.offsetX;
+    ctx.shadowOffsetY = layer.effects.shadow.offsetY;
+  }
+
+  if (layer.effects.outline.enabled) {
+    ctx.strokeStyle = layer.effects.outline.color;
+    ctx.lineWidth = layer.effects.outline.width;
+    ctx.strokeText(layer.text, layer.x, layer.y);
+  }
+
+  // Draw text
+  ctx.fillText(layer.text, layer.x, layer.y);
+
+  // Draw underline if enabled
+  if (layer.underline) {
+    const metrics = ctx.measureText(layer.text);
+    const lineY = layer.y + 3;
+    ctx.beginPath();
+    ctx.moveTo(layer.x, lineY);
+    ctx.lineTo(layer.x + metrics.width, lineY);
+    ctx.strokeStyle = layer.color;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Draw selection indicators
+  if (isSelected) {
+    const metrics = ctx.measureText(layer.text);
+    const height = layer.fontSize;
+
+    ctx.strokeStyle = "#0066ff";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.strokeRect(
+      layer.x - 4,
+      layer.y - height - 4,
+      metrics.width + 8,
+      height + 8
+    );
+
+    ctx.fillStyle = "#0066ff";
+    ctx.font = "12px Inter";
+    ctx.setLineDash([]);
+    ctx.fillText(
+      `(${Math.round(layer.x)}, ${Math.round(layer.y)})`,
+      layer.x,
+      layer.y + 20
+    );
+  }
+
+  ctx.restore();
+};
+
+const drawImageLayer = async (
+  ctx: CanvasRenderingContext2D,
+  layer: ImageLayer,
+  isSelected: boolean
+) => {
+  ctx.save();
+
+  // Get the cached image or load it
+  const image = await loadImage(layer.url);
+  
+  // Use high-quality image rendering
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  
+  // Draw the image
+  ctx.drawImage(image, layer.x, layer.y, layer.width, layer.height);
+
+  // Draw selection box if selected
+  if (isSelected) {
+    ctx.strokeStyle = "#0066ff";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.strokeRect(layer.x - 4, layer.y - 4, layer.width + 8, layer.height + 8);
+
+    // Draw resize handles
+    const handleSize = 8;
+    const handles = [
+      { x: layer.x - 4, y: layer.y - 4 }, // NW
+      { x: layer.x + layer.width - 4, y: layer.y - 4 }, // NE
+      { x: layer.x - 4, y: layer.y + layer.height - 4 }, // SW
+      { x: layer.x + layer.width - 4, y: layer.y + layer.height - 4 }, // SE
+    ];
+
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "#0066ff";
+    handles.forEach(handle => {
+      ctx.fillRect(handle.x, handle.y, handleSize, handleSize);
+      ctx.strokeRect(handle.x, handle.y, handleSize, handleSize);
+    });
+
+    // Draw coordinates
+    ctx.fillStyle = "#0066ff";
+    ctx.font = "12px Inter";
+    ctx.fillText(
+      `(${Math.round(layer.x)}, ${Math.round(layer.y)})`,
+      layer.x,
+      layer.y + layer.height + 20
+    );
+  }
+
+  ctx.restore();
 };
 
 export const drawFrame = (
@@ -71,8 +262,7 @@ export const drawFrame = (
     ctx.save();
     ctx.translate(offsetX, 0);
 
-    // Carve out the frame
-    ctx.globalCompositeOperation = "destination-out";
+    // Create a path for the frame cutout
     ctx.beginPath();
     ctx.moveTo(frameLeftWidth + frameRadius, frameTopWidth);
     ctx.arcTo(
@@ -104,90 +294,80 @@ export const drawFrame = (
       frameRadius
     );
     ctx.closePath();
-    ctx.fill();
 
-    // Draw the border around the carved frame
-    if (frameBorderWidth > 0) {
-      ctx.globalCompositeOperation = "source-over";
-      ctx.lineWidth = frameBorderWidth;
-      ctx.strokeStyle = frameBorderColor;
-      ctx.stroke();
-    }
+    // Fill the cutout with solid color
+    ctx.fillStyle = '#000000';
+    ctx.fill();
 
     ctx.restore();
   }
 };
 
-export const drawText = (
+const drawFrameBorders = (
   ctx: CanvasRenderingContext2D,
-  layers: TextLayer[],
-  selectedLayerId: string | null
+  frameWidth: number,
+  frameHeight: number,
+  frameLeftWidth: number,
+  frameRightWidth: number,
+  frameTopWidth: number,
+  frameBottomWidth: number,
+  frameRadius: number,
+  frameSpacing: number,
+  frameCount: number,
+  frameBorderWidth: number,
+  frameBorderColor: string
 ) => {
-  layers.forEach((layer) => {
+  const totalSpacing = frameSpacing * (frameCount - 1);
+  const totalBorders = frameLeftWidth + frameRightWidth;
+  const totalUsableFrameWidth =
+    (frameWidth - totalSpacing - totalBorders) / frameCount;
+
+  for (let i = 0; i < frameCount; i++) {
+    const offsetX = i * (totalUsableFrameWidth + frameSpacing);
+
     ctx.save();
+    ctx.translate(offsetX, 0);
 
-    // Set text styles
-    ctx.font = `${layer.italic ? "italic " : ""}${layer.bold ? "bold " : ""}${
-      layer.fontSize
-    }px ${layer.fontFamily}`;
-    ctx.fillStyle = layer.color;
+    // Create a path for the frame border
+    ctx.beginPath();
+    ctx.moveTo(frameLeftWidth + frameRadius, frameTopWidth);
+    ctx.arcTo(
+      frameLeftWidth + totalUsableFrameWidth,
+      frameTopWidth,
+      frameLeftWidth + totalUsableFrameWidth,
+      frameTopWidth + frameRadius,
+      frameRadius
+    );
+    ctx.arcTo(
+      frameLeftWidth + totalUsableFrameWidth,
+      frameHeight - frameBottomWidth,
+      frameLeftWidth + totalUsableFrameWidth - frameRadius,
+      frameHeight - frameBottomWidth,
+      frameRadius
+    );
+    ctx.arcTo(
+      frameLeftWidth,
+      frameHeight - frameBottomWidth,
+      frameLeftWidth,
+      frameHeight - frameBottomWidth - frameRadius,
+      frameRadius
+    );
+    ctx.arcTo(
+      frameLeftWidth,
+      frameTopWidth,
+      frameLeftWidth + frameRadius,
+      frameTopWidth,
+      frameRadius
+    );
+    ctx.closePath();
 
-    // Apply effects
-    if (layer.effects.shadow.enabled) {
-      ctx.shadowColor = layer.effects.shadow.color;
-      ctx.shadowBlur = layer.effects.shadow.blur;
-      ctx.shadowOffsetX = layer.effects.shadow.offsetX;
-      ctx.shadowOffsetY = layer.effects.shadow.offsetY;
-    }
-
-    if (layer.effects.outline.enabled) {
-      ctx.strokeStyle = layer.effects.outline.color;
-      ctx.lineWidth = layer.effects.outline.width;
-      ctx.strokeText(layer.text, layer.x, layer.y);
-    }
-
-    // Draw text
-    ctx.fillText(layer.text, layer.x, layer.y);
-
-    // Draw underline if enabled
-    if (layer.underline) {
-      const metrics = ctx.measureText(layer.text);
-      const lineY = layer.y + 3;
-      ctx.beginPath();
-      ctx.moveTo(layer.x, lineY);
-      ctx.lineTo(layer.x + metrics.width, lineY);
-      ctx.strokeStyle = layer.color;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-    }
-
-    // Draw selection indicators
-    if (layer.id === selectedLayerId) {
-      const metrics = ctx.measureText(layer.text);
-      const height = layer.fontSize;
-
-      ctx.strokeStyle = "#0066ff";
-      ctx.lineWidth = 1;
-      ctx.setLineDash([5, 5]);
-      ctx.strokeRect(
-        layer.x - 4,
-        layer.y - height - 4,
-        metrics.width + 8,
-        height + 8
-      );
-
-      ctx.fillStyle = "#0066ff";
-      ctx.font = "12px Inter";
-      ctx.setLineDash([]);
-      ctx.fillText(
-        `(${Math.round(layer.x)}, ${Math.round(layer.y)})`,
-        layer.x,
-        layer.y + 20
-      );
-    }
+    // Draw the border
+    ctx.strokeStyle = frameBorderColor;
+    ctx.lineWidth = frameBorderWidth;
+    ctx.stroke();
 
     ctx.restore();
-  });
+  }
 };
 
 export interface LinearGradientSettings {
@@ -267,4 +447,58 @@ export const getGradientStyle = (frameGradient: LinearGradientSettings) => {
     case "diagonal-reverse":
       return `linear-gradient(-135deg, ${gradientStops})`;
   }
+};
+
+export const isPointInResizeHandle = (
+  x: number,
+  y: number,
+  layer: ImageLayer,
+  handle: 'nw' | 'ne' | 'sw' | 'se'
+): boolean => {
+  const handleSize = 8;
+  const handles = {
+    nw: { x: layer.x - 4, y: layer.y - 4 },
+    ne: { x: layer.x + layer.width - 4, y: layer.y - 4 },
+    sw: { x: layer.x - 4, y: layer.y + layer.height - 4 },
+    se: { x: layer.x + layer.width - 4, y: layer.y + layer.height - 4 },
+  };
+
+  const handlePos = handles[handle];
+  return (
+    x >= handlePos.x &&
+    x <= handlePos.x + handleSize &&
+    y >= handlePos.y &&
+    y <= handlePos.y + handleSize
+  );
+};
+
+export const isPointInLayer = (x: number, y: number, layer: Layer): boolean => {
+  if ('text' in layer) {
+    // Text layer bounds check
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return false;
+
+    ctx.font = `${layer.italic ? "italic " : ""}${layer.bold ? "bold " : ""}${
+      layer.fontSize
+    }px ${layer.fontFamily}`;
+    const metrics = ctx.measureText(layer.text);
+    const height = layer.fontSize;
+
+    return (
+      x >= layer.x &&
+      x <= layer.x + metrics.width &&
+      y >= layer.y - height &&
+      y <= layer.y
+    );
+  } else if ('url' in layer) {
+    // Image layer bounds check
+    return (
+      x >= layer.x &&
+      x <= layer.x + layer.width &&
+      y >= layer.y &&
+      y <= layer.y + layer.height
+    );
+  }
+  return false;
 };

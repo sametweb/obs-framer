@@ -25,16 +25,28 @@ export interface TextLayer {
   };
 }
 
+export interface ImageLayer {
+  id: string;
+  type: 'image';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  url: string;
+}
+
+export type Layer = TextLayer | ImageLayer;
+
 export interface TextEditorState {
-  layers: TextLayer[];
+  layers: Layer[];
   selectedLayerId: string | null;
 }
 
 export type TextEditorAction =
-  | { type: "ADD_LAYER"; payload: TextLayer }
+  | { type: "ADD_LAYER"; payload: Layer }
   | {
       type: "UPDATE_LAYER";
-      payload: { id: string; updates: Partial<TextLayer> };
+      payload: { id: string; updates: Partial<Layer> };
     }
   | { type: "DELETE_LAYER"; payload: string }
   | { type: "SELECT_LAYER"; payload: string | null }
@@ -55,4 +67,9 @@ export interface DragState {
   startY: number;
   layerStartX: number;
   layerStartY: number;
+  layerStartWidth: number;
+  layerStartHeight: number;
+  resizing: boolean;
+  resizeHandle?: 'nw' | 'ne' | 'sw' | 'se';
+  aspectRatio: number;
 }
