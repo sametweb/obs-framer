@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import {
   FocusEventHandler,
   KeyboardEventHandler,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -45,11 +46,15 @@ export default function Preview() {
   const editableTitleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    if (!canvasRef.current || !frameSettings) return;
-    renderCanvas(canvasRef, frameSettings, state);
-  }, [state, state.layers, state.selectedLayerId, frameSettings]);
+    if (!frameSettings) {
+      router.push(projectsRoute.path);
+      return;
+    }
 
-  // Add keyboard event handlers
+    if (!canvasRef.current) return;
+    renderCanvas(canvasRef, frameSettings, state);
+  }, [state, state.layers, state.selectedLayerId, frameSettings, router]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!state.selectedLayerId) return;
@@ -97,9 +102,16 @@ export default function Preview() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [state.selectedLayerId, dispatch, state.layers]);
 
+  const handleLayerSelect = useCallback(
+    (layerId: string) => {
+      dispatch(selectLayer(layerId));
+      router.push(textRoute.path);
+    },
+    [dispatch, router]
+  );
+
   if (!frameSettings) {
-    router.push(projectsRoute.path);
-    return;
+    return null;
   }
 
   const { screenHeight, screenWidth, documentName } = frameSettings;
@@ -219,8 +231,7 @@ export default function Preview() {
           layerStartX: layer.x,
           layerStartY: layer.y,
         });
-        router.push(textRoute.path);
-        dispatch(selectLayer(layer.id));
+        handleLayerSelect(layer.id);
         return;
       }
     }
