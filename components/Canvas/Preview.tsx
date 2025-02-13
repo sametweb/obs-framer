@@ -282,8 +282,16 @@ export default function Preview() {
             )}
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleSave} disabled={isSaved}>
-              <Save className=" h-4 w-4" />
+            <Button
+              variant={isSaved ? "ghost" : "outline"}
+              onClick={handleSave}
+              disabled={isSaved}
+            >
+              {isSaved ? (
+                <span>Changes saved</span>
+              ) : (
+                <Save className=" h-4 w-4" />
+              )}
             </Button>
             <Button variant="outline" onClick={handleDownloadCanvas}>
               <Download className="h-4 w-4" />
