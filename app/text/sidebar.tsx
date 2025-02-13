@@ -36,9 +36,7 @@ import {
 import { useEffect, useState } from "react";
 
 export function Sidebar() {
-  const {
-    frameSettings: { screenWidth, screenHeight },
-  } = useFrameSettings();
+  const { frameSettings } = useFrameSettings();
   const dispatch = useAppDispatch();
   const { layers, selectedLayerId } = useAppSelector(
     (state) => state.textEditor
@@ -52,8 +50,12 @@ export function Sidebar() {
     dispatch(updateTextLayers(layers));
   }, [layers, dispatch]);
 
+  if (!frameSettings) return;
+
   const handleAddLayer = () => {
     if (!newText.trim()) return;
+
+    const { screenWidth, screenHeight } = frameSettings;
 
     dispatch(
       addLayer({

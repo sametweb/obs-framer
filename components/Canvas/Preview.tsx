@@ -1,10 +1,12 @@
 import { renderCanvas } from "@/app/frame/utils";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
+import { closeFrameEditor } from "@/lib/store/frameSettingsSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { selectLayer, updateLayer } from "@/lib/store/textEditorSlice";
 import { DragState, TextLayer } from "@/lib/types";
 import clsx from "clsx";
-import { Check, Download, Edit, Save } from "lucide-react";
+import { Check, Download, Edit, Save, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   FocusEventHandler,
   KeyboardEventHandler,
@@ -13,6 +15,7 @@ import {
   useState,
 } from "react";
 import { v4 } from "uuid";
+import { projectsRoute, textRoute } from "../Navigation/routes";
 import { Button } from "../ui/button";
 
 const defaultDragState = {
@@ -29,6 +32,7 @@ export default function Preview() {
 
   const dispatch = useAppDispatch();
   const state = useAppSelector((state) => state.textEditor);
+  const router = useRouter();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [dragState, setDragState] = useState<DragState>(defaultDragState);
@@ -36,12 +40,65 @@ export default function Preview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const editableTitleRef = useRef<HTMLHeadingElement>(null);
 
-  const { screenHeight, screenWidth, documentName } = frameSettings;
-
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !frameSettings) return;
     renderCanvas(canvasRef, frameSettings, state);
   }, [state, state.layers, state.selectedLayerId, frameSettings]);
+
+  // Add keyboard event handlers
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!state.selectedLayerId) return;
+
+      const moveAmount = e.shiftKey ? 10 : 1;
+      let dx = 0;
+      let dy = 0;
+
+      switch (e.key) {
+        case "ArrowLeft":
+          dx = -moveAmount;
+          break;
+        case "ArrowRight":
+          dx = moveAmount;
+          break;
+        case "ArrowUp":
+          dy = -moveAmount;
+          break;
+        case "ArrowDown":
+          dy = moveAmount;
+          break;
+        default:
+          return;
+      }
+
+      e.preventDefault();
+
+      const layer = state.layers.find(
+        (layer) => layer.id === state.selectedLayerId
+      );
+      if (!layer) return;
+
+      dispatch(
+        updateLayer({
+          id: state.selectedLayerId,
+          updates: {
+            x: layer.x + dx,
+            y: layer.y + dy,
+          },
+        })
+      );
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [state.selectedLayerId, dispatch, state.layers]);
+
+  if (!frameSettings) {
+    router.push(projectsRoute.path);
+    return;
+  }
+
+  const { screenHeight, screenWidth, documentName } = frameSettings;
 
   const handleSaveTitle: FocusEventHandler<HTMLHeadingElement> = (e) => {
     if (editableTitleRef.current != null) {
@@ -102,6 +159,10 @@ export default function Preview() {
     }
   };
 
+  const handleXClick = () => {
+    dispatch(closeFrameEditor());
+  };
+
   const getMousePos = (e: React.MouseEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
@@ -153,6 +214,7 @@ export default function Preview() {
           layerStartX: layer.x,
           layerStartY: layer.y,
         });
+        router.push(textRoute.path);
         dispatch(selectLayer(layer.id));
         return;
       }
@@ -182,54 +244,6 @@ export default function Preview() {
     setDragState(defaultDragState);
   };
 
-  // Add keyboard event handlers
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!state.selectedLayerId) return;
-
-      const moveAmount = e.shiftKey ? 10 : 1;
-      let dx = 0;
-      let dy = 0;
-
-      switch (e.key) {
-        case "ArrowLeft":
-          dx = -moveAmount;
-          break;
-        case "ArrowRight":
-          dx = moveAmount;
-          break;
-        case "ArrowUp":
-          dy = -moveAmount;
-          break;
-        case "ArrowDown":
-          dy = moveAmount;
-          break;
-        default:
-          return;
-      }
-
-      e.preventDefault();
-
-      const layer = state.layers.find(
-        (layer) => layer.id === state.selectedLayerId
-      );
-      if (!layer) return;
-
-      dispatch(
-        updateLayer({
-          id: state.selectedLayerId,
-          updates: {
-            x: layer.x + dx,
-            y: layer.y + dy,
-          },
-        })
-      );
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [state.selectedLayerId, dispatch, state.layers]);
-
   return (
     <main className="flex-1 p-6 bg-background">
       <div className="max-w-screen-xl mx-auto">
@@ -237,7 +251,7 @@ export default function Preview() {
           <div className="flex gap-2 items-center">
             <h2
               ref={editableTitleRef}
-              className={clsx("text-lg", "font-semibold", "p-2", {
+              className={clsx("text-lg", "font-medium", "p-2", {
                 "bg-red-50": isEditingTitle,
               })}
               contentEditable
@@ -270,6 +284,9 @@ export default function Preview() {
             <Button variant="outline" onClick={handleDownloadCanvas}>
               Download
               <Download className="ml-2 h-4 w-4" />
+            </Button>
+            <Button variant="outline" onClick={handleXClick}>
+              <X className="h-4 w-4" />
             </Button>
           </div>
         </div>

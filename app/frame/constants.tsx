@@ -63,7 +63,7 @@ export interface FrameSettings {
   modifiedAt: string;
 }
 
-export const defaultFrameSettings: FrameSettings = {
+export const defaultFrameSettings = (): FrameSettings => ({
   id: "",
   documentName: "Untitled Document",
   frameGradient: defaultFrameGradient,
@@ -78,7 +78,7 @@ export const defaultFrameSettings: FrameSettings = {
   frameCount: defaultFrameCount,
   frameInnerBorderWidth: frameInnerBorderWidth,
   frameInnerBorderColor: frameInnerBorderColor,
-  textLayers: [],
+  textLayers: new Array(),
   createdAt: new Date().toISOString(),
   modifiedAt: new Date().toISOString(),
-};
+});

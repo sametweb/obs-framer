@@ -1,5 +1,6 @@
 "use client";
 import Preview from "@/components/Canvas/Preview";
+import { projectsRoute } from "@/components/Navigation/routes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { ArrowLeftRight, Plus, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { commonResolutions, directions } from "./constants";
 import {
   getGradientStyle,
@@ -23,6 +25,12 @@ import {
 
 export default function Home() {
   const { frameSettings, updateFrameSettings } = useFrameSettings();
+  const router = useRouter();
+
+  if (!frameSettings) {
+    router.push(projectsRoute.path);
+    return;
+  }
 
   const {
     frameBottomWidth,
