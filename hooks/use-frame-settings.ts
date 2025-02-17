@@ -1,4 +1,3 @@
-import { FrameSettings } from "@/app/frame/constants";
 import {
   deleteFrame,
   saveFrame,
@@ -9,6 +8,7 @@ import {
   updateFrameSettings,
 } from "@/lib/store/frameSettingsSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { FrameSettings } from "@/lib/types";
 
 export function useFrameSettings() {
   const dispatch = useAppDispatch();

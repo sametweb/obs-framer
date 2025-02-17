@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFonts } from "@/hooks/use-fonts";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { GOOGLE_FONTS } from "@/lib/fonts";
-import { updateTextLayers } from "@/lib/store/frameSettingsSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import {
   addLayer,
@@ -25,7 +24,7 @@ import {
   selectLayer,
   updateLayer,
 } from "@/lib/store/textEditorSlice";
-import { TextLayer } from "@/lib/types";
+import { Layer, TextLayer } from "@/lib/types";
 import {
   Bold,
   ChevronDown,
@@ -34,9 +33,10 @@ import {
   Trash2,
   Underline,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { v4 } from "uuid";
 
-export function Sidebar() {
+export function TextEditSidebar() {
   const { frameSettings } = useFrameSettings();
   const dispatch = useAppDispatch();
   const { layers, selectedLayerId } = useAppSelector(
@@ -46,13 +46,10 @@ export function Sidebar() {
   const { fontsLoaded } = useFonts();
 
   // Find the selected layer and ensure it's a text layer
-  const selectedLayer = layers.find((layer): layer is TextLayer => 
-    layer.id === selectedLayerId && 'text' in layer
+  const selectedLayer = layers.find(
+    (layer): layer is TextLayer =>
+      layer.id === selectedLayerId && layer.type == "text"
   );
-
-  useEffect(() => {
-    dispatch(updateTextLayers(layers));
-  }, [layers, dispatch]);
 
   if (!frameSettings) return null;
 
@@ -63,7 +60,8 @@ export function Sidebar() {
 
     dispatch(
       addLayer({
-        id: crypto.randomUUID(),
+        id: v4(),
+        type: "text",
         text: newText,
         x: screenWidth / 2,
         y: screenHeight / 2,
@@ -109,8 +107,12 @@ export function Sidebar() {
   // Create a reversed copy of the layers array for display
   const displayLayers = [...layers].reverse();
 
-  // Filter to show only text layers in the sidebar
-  const textLayers = displayLayers.filter((layer): layer is TextLayer => 'text' in layer);
+  const getLayerName = (layer: Layer) => {
+    if (layer.hasOwnProperty("text")) {
+      return (layer as TextLayer).text;
+    }
+    return layer.id;
+  };
 
   return (
     <aside className="w-[300px] border-r border-border bg-card p-6">
@@ -138,13 +140,13 @@ export function Sidebar() {
         <div className="space-y-2">
           <Label>Text Layers</Label>
           <ScrollArea className="h-[200px] border rounded-md p-2">
-            {textLayers.length === 0 ? (
+            {displayLayers.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
                 No text layers yet. Add some text to get started.
               </p>
             ) : (
               <div className="space-y-2">
-                {textLayers.map((layer, index) => (
+                {displayLayers.map((layer, index) => (
                   <div
                     key={layer.id}
                     className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer ${
@@ -171,7 +173,7 @@ export function Sidebar() {
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6"
-                        disabled={index === textLayers.length - 1}
+                        disabled={index === displayLayers.length - 1}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleMoveLayer(layer.id, "up");
@@ -182,7 +184,7 @@ export function Sidebar() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
-                        {layer.text}
+                        {getLayerName(layer)}
                       </p>
                     </div>
                     <Button

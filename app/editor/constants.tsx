@@ -1,4 +1,4 @@
-import { TextLayer } from "@/lib/types";
+import { FrameSettings } from "@/lib/types";
 import { LinearGradientSettings } from "./utils";
 
 // Dropdown options for the screen size setting.
@@ -43,26 +43,6 @@ export const defaultFrameCount = 1;
 export const frameInnerBorderWidth = 1;
 export const frameInnerBorderColor = "#000000";
 
-export interface FrameSettings {
-  id: string;
-  documentName: string;
-  frameGradient: LinearGradientSettings;
-  screenWidth: number;
-  screenHeight: number;
-  frameLeftWidth: number;
-  frameRightWidth: number;
-  frameTopWidth: number;
-  frameBottomWidth: number;
-  frameSpacing: number;
-  frameRadius: number;
-  frameCount: number;
-  frameInnerBorderWidth: number;
-  frameInnerBorderColor: string;
-  textLayers: TextLayer[];
-  createdAt: string;
-  modifiedAt: string;
-}
-
 export const defaultFrameSettings = (): FrameSettings => ({
   id: "",
   documentName: "Untitled Document",
@@ -78,7 +58,6 @@ export const defaultFrameSettings = (): FrameSettings => ({
   frameCount: defaultFrameCount,
   frameInnerBorderWidth: frameInnerBorderWidth,
   frameInnerBorderColor: frameInnerBorderColor,
-  textLayers: new Array(),
   createdAt: new Date().toISOString(),
   modifiedAt: new Date().toISOString(),
 });

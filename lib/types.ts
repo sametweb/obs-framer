@@ -1,8 +1,33 @@
-export interface TextLayer {
+import { LinearGradientSettings } from "@/app/editor/utils";
+
+export interface FrameSettings {
   id: string;
-  text: string;
+  documentName: string;
+  frameGradient: LinearGradientSettings;
+  screenWidth: number;
+  screenHeight: number;
+  frameLeftWidth: number;
+  frameRightWidth: number;
+  frameTopWidth: number;
+  frameBottomWidth: number;
+  frameSpacing: number;
+  frameRadius: number;
+  frameCount: number;
+  frameInnerBorderWidth: number;
+  frameInnerBorderColor: string;
+  createdAt: string;
+  modifiedAt: string;
+}
+
+export interface CommonLayerProperties {
+  id: string;
+  type: "text" | "image";
   x: number;
   y: number;
+}
+
+export interface TextLayerProperties {
+  text: string;
   fontSize: number;
   fontFamily: string;
   color: string;
@@ -25,19 +50,19 @@ export interface TextLayer {
   };
 }
 
-export interface ImageLayer {
-  id: string;
-  type: 'image';
-  x: number;
-  y: number;
+export interface ImageLayerProperties {
   width: number;
   height: number;
   url: string;
 }
 
+export type TextLayer = CommonLayerProperties & TextLayerProperties;
+
+export type ImageLayer = CommonLayerProperties & ImageLayerProperties;
+
 export type Layer = TextLayer | ImageLayer;
 
-export interface TextEditorState {
+export interface LayerEditorState {
   layers: Layer[];
   selectedLayerId: string | null;
 }
@@ -51,15 +76,9 @@ export type TextEditorAction =
   | { type: "DELETE_LAYER"; payload: string }
   | { type: "SELECT_LAYER"; payload: string | null }
   | { type: "SET_CANVAS_SIZE"; payload: { width: number; height: number } }
-  | { type: "SET_STATE"; payload: TextEditorState }
+  | { type: "SET_STATE"; payload: LayerEditorState }
   | { type: "UNDO" }
   | { type: "REDO" };
-
-export interface HistoryState {
-  past: TextEditorState[];
-  present: TextEditorState;
-  future: TextEditorState[];
-}
 
 export interface DragState {
   isDragging: boolean;
@@ -70,6 +89,6 @@ export interface DragState {
   layerStartWidth: number;
   layerStartHeight: number;
   resizing: boolean;
-  resizeHandle?: 'nw' | 'ne' | 'sw' | 'se';
+  resizeHandle?: "nw" | "ne" | "sw" | "se";
   aspectRatio: number;
 }

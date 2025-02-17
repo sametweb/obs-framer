@@ -1,17 +1,22 @@
 "use client";
-import { renderCanvas } from "@/app/frame/utils";
-import { projectsRoute, textRoute } from "@/components/Navigation/routes";
+import {
+  isPointInLayer,
+  isPointInResizeHandle,
+  renderCanvas,
+} from "@/app/editor/utils";
+import { myFramesRoute } from "@/components/Navigation/routes";
 import { Button } from "@/components/ui/button";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { closeFrameEditor } from "@/lib/store/frameSettingsSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import {
+  addLayer,
+  addNewTextLayer,
   selectLayer,
   setState,
   updateLayer,
-  addLayer,
 } from "@/lib/store/textEditorSlice";
-import { DragState, ImageLayer, Layer } from "@/lib/types";
+import { DragState, ImageLayer } from "@/lib/types";
 import clsx from "clsx";
 import * as Icons from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -25,7 +30,8 @@ import {
   useState,
 } from "react";
 import { v4 } from "uuid";
-import { isPointInLayer, isPointInResizeHandle } from "@/app/frame/utils";
+import { Input } from "../ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 const defaultDragState = {
   isDragging: false,
@@ -50,48 +56,22 @@ export default function Preview() {
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [dragState, setDragState] = useState<DragState>(defaultDragState);
+  const [newText, setNewText] = useState("");
+  const [addTextPopover, setAddTextPopover] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const editableTitleRef = useRef<HTMLHeadingElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (!frameSettings) {
-      router.push(projectsRoute.path);
+      router.push(myFramesRoute.path);
       return;
     }
 
     if (!canvasRef.current) return;
     renderCanvas(canvasRef, frameSettings, state);
-  }, [state, state.layers, state.selectedLayerId, frameSettings, router]);
-
-  // Debounced auto-save effect
-  useEffect(() => {
-    if (!frameSettings || !state.layers.length) return;
-
-    // Clear any existing timeout
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-
-    // Set a new timeout for the auto-save
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      const updatedSettings = {
-        ...frameSettings,
-        textLayers: state.layers,
-        modifiedAt: new Date().toISOString(),
-      };
-      updateFrameSettings(updatedSettings);
-    }, 1000); // Debounce for 1 second
-
-    // Cleanup
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-    };
-  }, [state.layers, frameSettings, updateFrameSettings]);
+  }, [frameSettings, router, state]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -129,8 +109,8 @@ export default function Preview() {
         updateLayer({
           id: state.selectedLayerId,
           updates: {
-            x: ('x' in layer ? layer.x : 0) + dx,
-            y: ('y' in layer ? layer.y : 0) + dy,
+            x: ("x" in layer ? layer.x : 0) + dx,
+            y: ("y" in layer ? layer.y : 0) + dy,
           },
         })
       );
@@ -143,17 +123,19 @@ export default function Preview() {
   const handleLayerSelect = useCallback(
     (layerId: string) => {
       dispatch(selectLayer(layerId));
-      const layer = state.layers.find(layer => layer.id === layerId);
-      if (layer && 'text' in layer) {
-        router.push(textRoute.path);
-      }
     },
-    [dispatch, router, state.layers]
+    [dispatch]
   );
+
+  if (!frameSettings) {
+    return null;
+  }
+
+  const { screenHeight, screenWidth, documentName } = frameSettings;
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) return;
+    if (!file || !file.type.startsWith("image/")) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -165,9 +147,9 @@ export default function Preview() {
 
         const imageLayer: ImageLayer = {
           id: v4(),
-          type: 'image',
-          x: frameSettings!.screenWidth / 2 - newWidth / 2,
-          y: frameSettings!.screenHeight / 2 - newHeight / 2,
+          type: "image",
+          x: screenWidth / 2 - newWidth / 2,
+          y: screenHeight / 2 - newHeight / 2,
           width: newWidth,
           height: newHeight,
           url: event.target?.result as string,
@@ -180,12 +162,6 @@ export default function Preview() {
     };
     reader.readAsDataURL(file);
   };
-
-  if (!frameSettings) {
-    return null;
-  }
-
-  const { screenHeight, screenWidth, documentName } = frameSettings;
 
   const handleSaveTitle: FocusEventHandler<HTMLHeadingElement> = (e) => {
     if (editableTitleRef.current != null) {
@@ -249,7 +225,7 @@ export default function Preview() {
   const handleXClick = () => {
     dispatch(closeFrameEditor());
     dispatch(setState({ layers: [], selectedLayerId: null }));
-    router.push(projectsRoute.path);
+    router.push(myFramesRoute.path);
   };
 
   const getMousePos = (e: React.MouseEvent) => {
@@ -272,10 +248,15 @@ export default function Preview() {
     // Check each layer in reverse order (top to bottom)
     for (let i = state.layers.length - 1; i >= 0; i--) {
       const layer = state.layers[i];
-      
+
       // Check resize handles for image layers
-      if ('url' in layer && layer.id === state.selectedLayerId) {
-        const resizeHandles: Array<'nw' | 'ne' | 'sw' | 'se'> = ['nw', 'ne', 'sw', 'se'];
+      if ("url" in layer && layer.id === state.selectedLayerId) {
+        const resizeHandles: Array<"nw" | "ne" | "sw" | "se"> = [
+          "nw",
+          "ne",
+          "sw",
+          "se",
+        ];
         for (const handle of resizeHandles) {
           if (isPointInResizeHandle(pos.x, pos.y, layer, handle)) {
             setDragState({
@@ -302,11 +283,11 @@ export default function Preview() {
           isDragging: true,
           startX: pos.x,
           startY: pos.y,
-          layerStartX: 'x' in layer ? layer.x : 0,
-          layerStartY: 'y' in layer ? layer.y : 0,
-          layerStartWidth: 'width' in layer ? layer.width : 0,
-          layerStartHeight: 'height' in layer ? layer.height : 0,
-          aspectRatio: 'width' in layer ? layer.width / layer.height : 1,
+          layerStartX: layer.x,
+          layerStartY: layer.y,
+          layerStartWidth: "width" in layer ? layer.width : 0,
+          layerStartHeight: "height" in layer ? layer.height : 0,
+          aspectRatio: "width" in layer ? layer.width / layer.height : 1,
         });
         handleLayerSelect(layer.id);
         return;
@@ -319,39 +300,41 @@ export default function Preview() {
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!dragState.isDragging || !state.selectedLayerId) return;
     const pos = getMousePos(e);
-    
-    const layer = state.layers.find(l => l.id === state.selectedLayerId);
+
+    const layer = state.layers.find((l) => l.id === state.selectedLayerId);
     if (!layer) return;
 
-    if (dragState.resizing && 'url' in layer) {
+    if (dragState.resizing && layer.type == "image") {
       const dx = pos.x - dragState.startX;
       const dy = pos.y - dragState.startY;
-      
+
       let newWidth = dragState.layerStartWidth;
       let newHeight = dragState.layerStartHeight;
       let newX = layer.x;
       let newY = layer.y;
 
       switch (dragState.resizeHandle) {
-        case 'se':
+        case "se":
           newWidth = dragState.layerStartWidth + dx;
           newHeight = newWidth / dragState.aspectRatio;
           break;
-        case 'sw':
+        case "sw":
           newWidth = dragState.layerStartWidth - dx;
           newHeight = newWidth / dragState.aspectRatio;
           newX = dragState.layerStartX + dx;
           break;
-        case 'ne':
+        case "ne":
           newWidth = dragState.layerStartWidth + dx;
           newHeight = newWidth / dragState.aspectRatio;
-          newY = dragState.layerStartY + (dragState.layerStartHeight - newHeight);
+          newY =
+            dragState.layerStartY + (dragState.layerStartHeight - newHeight);
           break;
-        case 'nw':
+        case "nw":
           newWidth = dragState.layerStartWidth - dx;
           newHeight = newWidth / dragState.aspectRatio;
           newX = dragState.layerStartX + dx;
-          newY = dragState.layerStartY + (dragState.layerStartHeight - newHeight);
+          newY =
+            dragState.layerStartY + (dragState.layerStartHeight - newHeight);
           break;
       }
 
@@ -393,6 +376,22 @@ export default function Preview() {
     setDragState(defaultDragState);
   };
 
+  const handleAddLayer = () => {
+    if (!newText.trim()) return;
+
+    const { screenWidth, screenHeight } = frameSettings;
+
+    dispatch(
+      addNewTextLayer({
+        text: newText,
+        width: screenWidth,
+        height: screenHeight,
+      })
+    );
+    setNewText("");
+    setAddTextPopover(false);
+  };
+
   return (
     <main className="flex-1 p-6 bg-background">
       <div className="max-w-screen-xl mx-auto">
@@ -426,6 +425,43 @@ export default function Preview() {
             )}
           </div>
           <div className="flex gap-2">
+            <Popover open={addTextPopover} onOpenChange={setAddTextPopover}>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  <Icons.Text className="h-4 w-4 mr-2" />
+                  Add Text
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      Enter your text. You can style it on the sidebar after you
+                      added.
+                    </p>
+                  </div>
+                  <div className="grid gap-2">
+                    <div className="grid grid-cols-3 items-center gap-4">
+                      <Input
+                        value={newText}
+                        placeholder="Enter text..."
+                        onChange={(e) => setNewText(e.target.value)}
+                        className="col-span-2 h-8"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleAddLayer();
+                          }
+                        }}
+                      />
+                      <Button onClick={handleAddLayer} disabled={!newText}>
+                        Add
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
             <input
               type="file"
               ref={fileInputRef}

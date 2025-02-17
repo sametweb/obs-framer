@@ -1,18 +1,18 @@
 "use client";
 
-import { frameRoute } from "@/components/Navigation/routes";
+import { editorRoute } from "@/components/Navigation/routes";
 import { Button } from "@/components/ui/button";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { openFrameEditor } from "@/lib/store/frameSettingsSlice";
-import { useAppDispatch } from "@/lib/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { setState } from "@/lib/store/textEditorSlice";
+import { FrameSettings, Layer } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { Plus, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef } from "react";
-import { FrameSettings } from "../frame/constants";
-import { renderCanvas } from "../frame/utils";
+import { renderCanvas } from "../editor/utils";
 
 const Card = dynamic(() => import("@/components/ui/card").then((c) => c.Card), {
   ssr: false,
@@ -42,21 +42,20 @@ export default function Home() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { frames, deleteFrame } = useFrameSettings();
+  const { layers } = useAppSelector((state) => state.textEditor);
 
   const onProjectClick = (frame: FrameSettings) => {
     // Reset text editor state before opening the frame
-    dispatch(
-      setState({ layers: frame.textLayers || [], selectedLayerId: null })
-    );
+    dispatch(setState({ layers: layers || [], selectedLayerId: null }));
     dispatch(openFrameEditor(frame));
-    router.push(frameRoute.path);
+    router.push(editorRoute.path);
   };
 
   const onAddNewClick = () => {
     // Reset text editor state before creating a new frame
     dispatch(setState({ layers: [], selectedLayerId: null }));
     dispatch(openFrameEditor());
-    router.push(frameRoute.path);
+    router.push(editorRoute.path);
   };
 
   return (
@@ -64,7 +63,7 @@ export default function Home() {
       <main className="flex-1 p-6 bg-background">
         <div className="max-w-screen-xl mx-auto h-full">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Projects </h2>
+            <h2 className="text-lg font-semibold">My frames </h2>
             <Button onClick={onAddNewClick}>
               Add new <Plus className="w-4 h-4 ml-2" />
             </Button>
@@ -72,7 +71,7 @@ export default function Home() {
           {frames.length === 0 && (
             <div className="w-full h-full flex flex-col justify-center items-center">
               <p className="text-muted-foreground">
-                No projects yet. Create one to get started.
+                You don&apos;t have any frames yet. Create one to get started.
               </p>
             </div>
           )}
@@ -94,7 +93,7 @@ export default function Home() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <FrameCanvas frame={frame} />
+                    <FrameCanvas frame={frame} layers={layers} />
                   </CardContent>
                   <CardFooter className="flex justify-end">
                     <Trash2
@@ -114,16 +113,18 @@ export default function Home() {
   );
 }
 
-function FrameCanvas(props: React.PropsWithChildren<{ frame: FrameSettings }>) {
+function FrameCanvas(
+  props: React.PropsWithChildren<{ frame: FrameSettings; layers: Layer[] }>
+) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const state = {
-      layers: props.frame.textLayers || [],
+      layers: props.layers || [],
       selectedLayerId: null,
     };
     renderCanvas(ref, props.frame, state);
-  }, [props.frame]);
+  }, [props.frame, props.layers]);
 
   return (
     <canvas

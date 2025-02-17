@@ -10,14 +10,14 @@ export type NavItem = {
 };
 
 export const homeRoute: NavItem = { icon: Home, label: "Home", path: "/" };
-export const projectsRoute: NavItem = {
+export const myFramesRoute: NavItem = {
   icon: FolderOpen,
-  label: "Projects",
-  path: "/projects",
+  label: "My frames",
+  path: "/my-frames",
 };
-export const frameRoute: NavItem = {
+export const editorRoute: NavItem = {
   icon: Proportions,
-  label: "Frame",
-  path: "/frame",
+  label: "Editor",
+  path: "/editor",
 };
 export const textRoute: NavItem = { icon: Type, label: "Text", path: "/text" };

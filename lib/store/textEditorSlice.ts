@@ -1,7 +1,8 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { TextEditorState, TextLayer } from "../types";
+import { v4 } from "uuid";
+import { Layer, LayerEditorState, TextLayer } from "../types";
 
-const initialState: TextEditorState = {
+const initialState: LayerEditorState = {
   layers: [],
   selectedLayerId: null,
 };
@@ -10,13 +11,47 @@ const textEditorSlice = createSlice({
   name: "textEditor",
   initialState,
   reducers: {
-    addLayer: (state, action: PayloadAction<TextLayer>) => {
+    addLayer: (state, action: PayloadAction<Layer>) => {
       state.layers.push(action.payload);
       state.selectedLayerId = action.payload.id;
     },
+    addNewTextLayer: (
+      state,
+      action: PayloadAction<{ text: string; width: number; height: number }>
+    ) => {
+      const newTextLayer = {
+        id: v4(),
+        type: "text" as TextLayer["type"],
+        text: action.payload.text,
+        x: action.payload.width / 2,
+        y: action.payload.height / 2,
+        fontSize: 32,
+        fontFamily: "Inter",
+        color: "#000000",
+        bold: false,
+        italic: false,
+        underline: false,
+        effects: {
+          shadow: {
+            enabled: false,
+            color: "#000000",
+            blur: 4,
+            offsetX: 2,
+            offsetY: 2,
+          },
+          outline: {
+            enabled: false,
+            color: "#000000",
+            width: 2,
+          },
+        },
+      };
+      state.layers.push(newTextLayer);
+      state.selectedLayerId = newTextLayer.id;
+    },
     updateLayer: (
       state,
-      action: PayloadAction<{ id: string; updates: Partial<TextLayer> }>
+      action: PayloadAction<{ id: string; updates: Partial<Layer> }>
     ) => {
       const layer = state.layers.find((l) => l.id === action.payload.id);
       if (layer) {
@@ -34,7 +69,7 @@ const textEditorSlice = createSlice({
     selectLayer: (state, action: PayloadAction<string | null>) => {
       state.selectedLayerId = action.payload;
     },
-    setState: (state, action: PayloadAction<TextEditorState>) => {
+    setState: (state, action: PayloadAction<LayerEditorState>) => {
       return action.payload;
     },
     moveLayer: (
@@ -58,6 +93,7 @@ const textEditorSlice = createSlice({
 
 export const {
   addLayer,
+  addNewTextLayer,
   updateLayer,
   deleteLayer,
   selectLayer,

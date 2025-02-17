@@ -1,6 +1,11 @@
-import { ImageLayer, Layer, TextEditorState, TextLayer } from "@/lib/types";
+import {
+  FrameSettings,
+  ImageLayer,
+  Layer,
+  LayerEditorState,
+  TextLayer,
+} from "@/lib/types";
 import { RefObject } from "react";
-import { FrameSettings } from "./constants";
 
 // Cache for loaded images
 const imageCache = new Map<string, HTMLImageElement>();
@@ -24,7 +29,7 @@ const loadImage = (url: string): Promise<HTMLImageElement> => {
 export const renderCanvas = async (
   canvasRef: RefObject<HTMLCanvasElement>,
   frameSettings: FrameSettings,
-  state?: TextEditorState
+  state?: LayerEditorState
 ) => {
   const canvas = canvasRef.current;
   if (!canvas) return;
@@ -40,10 +45,10 @@ export const renderCanvas = async (
   ctx.fillRect(0, 0, frameSettings.screenWidth, frameSettings.screenHeight);
 
   // Create a temporary canvas for the frame mask
-  const maskCanvas = document.createElement('canvas');
+  const maskCanvas = document.createElement("canvas");
   maskCanvas.width = canvas.width;
   maskCanvas.height = canvas.height;
-  const maskCtx = maskCanvas.getContext('2d');
+  const maskCtx = maskCanvas.getContext("2d");
   if (!maskCtx) return;
 
   // Draw the frame cutouts on the mask canvas
@@ -63,16 +68,16 @@ export const renderCanvas = async (
   );
 
   // Use the mask to cut out the frame
-  ctx.globalCompositeOperation = 'destination-out';
+  ctx.globalCompositeOperation = "destination-out";
   ctx.drawImage(maskCanvas, 0, 0);
-  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalCompositeOperation = "source-over";
 
   // Draw the frame borders
   if (frameSettings.frameInnerBorderWidth > 0) {
-    const borderCanvas = document.createElement('canvas');
+    const borderCanvas = document.createElement("canvas");
     borderCanvas.width = canvas.width;
     borderCanvas.height = canvas.height;
-    const borderCtx = borderCanvas.getContext('2d');
+    const borderCtx = borderCanvas.getContext("2d");
     if (!borderCtx) return;
 
     drawFrameBorders(
@@ -99,16 +104,24 @@ export const renderCanvas = async (
     // Pre-load all images before drawing
     await Promise.all(
       state.layers
-        .filter((layer): layer is ImageLayer => 'url' in layer)
-        .map(layer => loadImage(layer.url))
+        .filter((layer): layer is ImageLayer => layer.type == "image")
+        .map((layer) => loadImage(layer.url))
     );
 
     // Draw all layers
     for (const layer of state.layers) {
-      if ('text' in layer) {
-        drawTextLayer(ctx, layer, layer.id === state.selectedLayerId);
-      } else if ('url' in layer) {
-        await drawImageLayer(ctx, layer, layer.id === state.selectedLayerId);
+      if (layer.type == "text") {
+        drawTextLayer(
+          ctx,
+          layer as TextLayer,
+          layer.id === state.selectedLayerId
+        );
+      } else if (layer.type == "image") {
+        await drawImageLayer(
+          ctx,
+          layer as ImageLayer,
+          layer.id === state.selectedLayerId
+        );
       }
     }
     ctx.restore();
@@ -192,11 +205,11 @@ const drawImageLayer = async (
 
   // Get the cached image or load it
   const image = await loadImage(layer.url);
-  
+
   // Use high-quality image rendering
   ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  
+  ctx.imageSmoothingQuality = "high";
+
   // Draw the image
   ctx.drawImage(image, layer.x, layer.y, layer.width, layer.height);
 
@@ -219,7 +232,7 @@ const drawImageLayer = async (
     ctx.setLineDash([]);
     ctx.fillStyle = "#ffffff";
     ctx.strokeStyle = "#0066ff";
-    handles.forEach(handle => {
+    handles.forEach((handle) => {
       ctx.fillRect(handle.x, handle.y, handleSize, handleSize);
       ctx.strokeRect(handle.x, handle.y, handleSize, handleSize);
     });
@@ -296,7 +309,7 @@ export const drawFrame = (
     ctx.closePath();
 
     // Fill the cutout with solid color
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = "#000000";
     ctx.fill();
 
     ctx.restore();
@@ -453,7 +466,7 @@ export const isPointInResizeHandle = (
   x: number,
   y: number,
   layer: ImageLayer,
-  handle: 'nw' | 'ne' | 'sw' | 'se'
+  handle: "nw" | "ne" | "sw" | "se"
 ): boolean => {
   const handleSize = 8;
   const handles = {
@@ -473,10 +486,10 @@ export const isPointInResizeHandle = (
 };
 
 export const isPointInLayer = (x: number, y: number, layer: Layer): boolean => {
-  if ('text' in layer) {
+  if ("text" in layer) {
     // Text layer bounds check
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
     if (!ctx) return false;
 
     ctx.font = `${layer.italic ? "italic " : ""}${layer.bold ? "bold " : ""}${
@@ -491,7 +504,7 @@ export const isPointInLayer = (x: number, y: number, layer: Layer): boolean => {
       y >= layer.y - height &&
       y <= layer.y
     );
-  } else if ('url' in layer) {
+  } else if ("url" in layer) {
     // Image layer bounds check
     return (
       x >= layer.x &&

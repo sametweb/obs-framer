@@ -1,9 +1,10 @@
-import { FrameSettings, defaultFrameSettings } from "@/app/frame/constants";
+import { defaultFrameSettings } from "@/app/editor/constants";
 import { deepCompare } from "@/lib/utils";
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { TextLayer } from "../types";
+import { FrameSettings } from "../types";
+import { RootState } from "./store";
 
-interface FrameSettingsState {
+interface FrameState {
   /**
    * Properties of the frame currently being edited. If this is null, that
    * means the editor should be closed.
@@ -16,7 +17,7 @@ interface FrameSettingsState {
   frames: FrameSettings[];
 }
 
-const initialState: FrameSettingsState = {
+const initialState: FrameState = {
   frameSettings: null,
   frames: [],
 };
@@ -37,16 +38,7 @@ const frameSettingsSlice = createSlice({
         };
       }
     },
-    updateTextLayers: (state, action: PayloadAction<TextLayer[]>) => {
-      if (state.frameSettings != null) {
-        // state.frameSettings.textLayers = action.payload;
-        state.frameSettings = {
-          ...state.frameSettings,
-          textLayers: action.payload,
-        };
-        state.frameSettings.modifiedAt = new Date().toISOString();
-      }
-    },
+
     saveFrame: (state, action: PayloadAction<FrameSettings>) => {
       const now = new Date().toISOString();
       const frameToSave = {
@@ -89,21 +81,16 @@ const frameSettingsSlice = createSlice({
   },
 });
 
-// Selectors
-export const selectFrameSettings = (state: {
-  frameSettings: FrameSettingsState;
-}) => state.frameSettings.frameSettings;
+export const selectFrameSettings = (state: RootState) =>
+  state.frameSettings.frameSettings;
 
-export const selectFrames = (state: { frameSettings: FrameSettingsState }) =>
-  state.frameSettings.frames;
+export const selectFrames = (state: RootState) => state.frameSettings.frames;
 
-export const selectIsDefaultSettings = (state: {
-  frameSettings: FrameSettingsState;
-}) =>
+export const selectIsDefaultSettings = (state: RootState) =>
   state.frameSettings.frameSettings != null &&
   deepCompare(state.frameSettings.frameSettings, defaultFrameSettings());
 
-export const selectIsSaved = (state: { frameSettings: FrameSettingsState }) => {
+export const selectIsSaved = (state: RootState) => {
   const { frameSettings, frames } = state.frameSettings;
   if (!frameSettings?.id) return false;
 
@@ -113,7 +100,6 @@ export const selectIsSaved = (state: { frameSettings: FrameSettingsState }) => {
 
 export const {
   updateFrameSettings,
-  updateTextLayers,
   saveFrame,
   deleteFrame,
   openFrameEditor,
