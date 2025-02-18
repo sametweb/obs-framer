@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { openFrameEditor } from "@/lib/store/frameSettingsSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { setState } from "@/lib/store/textEditorSlice";
+import { setState } from "@/lib/store/layerEditorSlice";
 import { FrameSettings, Layer } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { Plus, Trash2 } from "lucide-react";
@@ -42,7 +42,7 @@ export default function Home() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { frames, deleteFrame } = useFrameSettings();
-  const { layers } = useAppSelector((state) => state.textEditor);
+  const { layers } = useAppSelector((state) => state.layerEditor);
 
   const onProjectClick = (frame: FrameSettings) => {
     // Reset text editor state before opening the frame

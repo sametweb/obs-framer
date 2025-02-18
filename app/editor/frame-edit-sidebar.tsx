@@ -112,7 +112,6 @@ export default function FrameEditSidebar() {
     <aside className="w-[300px] border-r bg-background">
       <ScrollArea className="h-[calc(100vh-120px)]">
         <div className="p-4">
-          <h2 className="text-lg font-semibold mb-6">Frame settings</h2>
           <div className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="frameSize">Screen size</Label>

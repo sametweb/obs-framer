@@ -12,7 +12,7 @@ import { TextEditSidebar } from "./text-edit-sidebar";
 export default function Home() {
   const { frameSettings } = useFrameSettings();
   const { layers, selectedLayerId } = useAppSelector(
-    (state) => state.textEditor
+    (state) => state.layerEditor
   );
 
   const router = useRouter();

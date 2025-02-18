@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { useFonts } from "@/hooks/use-fonts";
 import { useFrameSettings } from "@/hooks/use-frame-settings";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { updateLayer } from "@/lib/store/textEditorSlice";
+import { updateLayer } from "@/lib/store/layerEditorSlice";
 import { ImageLayer } from "@/lib/types";
 import { useEffect, useState } from "react";
 
@@ -14,7 +14,7 @@ export function ImageEditSidebar() {
   const { frameSettings } = useFrameSettings();
   const dispatch = useAppDispatch();
   const { layers, selectedLayerId } = useAppSelector(
-    (state) => state.textEditor
+    (state) => state.layerEditor
   );
   const { fontsLoaded } = useFonts();
 

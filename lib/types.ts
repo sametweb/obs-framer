@@ -67,19 +67,6 @@ export interface LayerEditorState {
   selectedLayerId: string | null;
 }
 
-export type TextEditorAction =
-  | { type: "ADD_LAYER"; payload: Layer }
-  | {
-      type: "UPDATE_LAYER";
-      payload: { id: string; updates: Partial<Layer> };
-    }
-  | { type: "DELETE_LAYER"; payload: string }
-  | { type: "SELECT_LAYER"; payload: string | null }
-  | { type: "SET_CANVAS_SIZE"; payload: { width: number; height: number } }
-  | { type: "SET_STATE"; payload: LayerEditorState }
-  | { type: "UNDO" }
-  | { type: "REDO" };
-
 export interface DragState {
   isDragging: boolean;
   startX: number;

@@ -15,8 +15,9 @@ import {
   selectLayer,
   setState,
   updateLayer,
-} from "@/lib/store/textEditorSlice";
+} from "@/lib/store/layerEditorSlice";
 import { DragState, ImageLayer } from "@/lib/types";
+import { Popover } from "@radix-ui/react-popover";
 import clsx from "clsx";
 import * as Icons from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -31,7 +32,7 @@ import {
 } from "react";
 import { v4 } from "uuid";
 import { Input } from "../ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { PopoverContent, PopoverTrigger } from "../ui/popover";
 
 const defaultDragState = {
   isDragging: false,
@@ -51,7 +52,7 @@ export default function Preview() {
     useFrameSettings();
 
   const dispatch = useAppDispatch();
-  const state = useAppSelector((state) => state.textEditor);
+  const state = useAppSelector((state) => state.layerEditor);
   const router = useRouter();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -425,57 +426,6 @@ export default function Preview() {
             )}
           </div>
           <div className="flex gap-2">
-            <Popover open={addTextPopover} onOpenChange={setAddTextPopover}>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <Icons.Text className="h-4 w-4 mr-2" />
-                  Add Text
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80">
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Enter your text. You can style it on the sidebar after you
-                      added.
-                    </p>
-                  </div>
-                  <div className="grid gap-2">
-                    <div className="grid grid-cols-3 items-center gap-4">
-                      <Input
-                        value={newText}
-                        placeholder="Enter text..."
-                        onChange={(e) => setNewText(e.target.value)}
-                        className="col-span-2 h-8"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleAddLayer();
-                          }
-                        }}
-                      />
-                      <Button onClick={handleAddLayer} disabled={!newText}>
-                        Add
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept="image/png"
-              className="hidden"
-              onChange={handleImageUpload}
-            />
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Icons.Image className="h-4 w-4 mr-2" />
-              Add Image
-            </Button>
             <Button
               variant={isSaved ? "ghost" : "outline"}
               onClick={handleSave}
@@ -494,6 +444,59 @@ export default function Preview() {
               <Icons.X className="h-4 w-4" />
             </Button>
           </div>
+        </div>
+        <div className="flex gap-2 mb-2">
+          <Popover open={addTextPopover} onOpenChange={setAddTextPopover}>
+            <PopoverTrigger asChild>
+              <Button variant="outline">
+                <Icons.Text className="h-4 w-4 mr-2" />
+                Add Text
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Enter your text. You can style it on the sidebar after you
+                    added.
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <div className="grid grid-cols-3 items-center gap-4">
+                    <Input
+                      value={newText}
+                      placeholder="Enter text..."
+                      onChange={(e) => setNewText(e.target.value)}
+                      className="col-span-2 h-8"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleAddLayer();
+                        }
+                      }}
+                    />
+                    <Button onClick={handleAddLayer} disabled={!newText}>
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/png"
+            className="hidden"
+            onChange={handleImageUpload}
+          />
+          <Button
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Icons.Image className="h-4 w-4 mr-2" />
+            Add Image
+          </Button>
         </div>
         <canvas
           ref={canvasRef}

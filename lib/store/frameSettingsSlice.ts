@@ -92,6 +92,7 @@ export const selectIsDefaultSettings = (state: RootState) =>
 
 export const selectIsSaved = (state: RootState) => {
   const { frameSettings, frames } = state.frameSettings;
+  const { layers, selectedLayerId } = state.layerEditor;
   if (!frameSettings?.id) return false;
 
   const savedFrame = frames.find((frame) => frame.id === frameSettings?.id);

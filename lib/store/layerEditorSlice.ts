@@ -7,8 +7,8 @@ const initialState: LayerEditorState = {
   selectedLayerId: null,
 };
 
-const textEditorSlice = createSlice({
-  name: "textEditor",
+const layerEditorSlice = createSlice({
+  name: "layerEditor",
   initialState,
   reducers: {
     addLayer: (state, action: PayloadAction<Layer>) => {
@@ -99,6 +99,6 @@ export const {
   selectLayer,
   setState,
   moveLayer,
-} = textEditorSlice.actions;
+} = layerEditorSlice.actions;
 
-export default textEditorSlice.reducer;
+export default layerEditorSlice.reducer;
