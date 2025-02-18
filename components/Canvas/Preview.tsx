@@ -6,8 +6,8 @@ import {
 } from "@/app/editor/utils";
 import { myFramesRoute } from "@/components/Navigation/routes";
 import { Button } from "@/components/ui/button";
-import { useFrameSettings } from "@/hooks/use-frame-settings";
-import { closeFrameEditor } from "@/lib/store/frameSettingsSlice";
+import { useFrameEditor } from "@/hooks/use-frame-settings";
+import { closeFrameEditor } from "@/lib/store/frameEditorSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import {
   addLayer,
@@ -48,8 +48,8 @@ const defaultDragState = {
 };
 
 export default function Preview() {
-  const { frameSettings, updateFrameSettings, saveFrame, isSaved } =
-    useFrameSettings();
+  const { frameEditor, updateFrameEditor, saveFrame, isSaved } =
+    useFrameEditor();
 
   const dispatch = useAppDispatch();
   const state = useAppSelector((state) => state.layerEditor);
@@ -65,14 +65,14 @@ export default function Preview() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!frameSettings) {
+    if (!frameEditor) {
       router.push(myFramesRoute.path);
       return;
     }
 
     if (!canvasRef.current) return;
-    renderCanvas(canvasRef, frameSettings, state);
-  }, [frameSettings, router, state]);
+    renderCanvas(canvasRef, frameEditor, state);
+  }, [frameEditor, router, state]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -128,11 +128,11 @@ export default function Preview() {
     [dispatch]
   );
 
-  if (!frameSettings) {
+  if (!frameEditor) {
     return null;
   }
 
-  const { screenHeight, screenWidth, documentName } = frameSettings;
+  const { screenHeight, screenWidth, documentName } = frameEditor;
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -168,7 +168,7 @@ export default function Preview() {
     if (editableTitleRef.current != null) {
       const newDocumentName = e.target.textContent ?? "";
       if (newDocumentName != documentName) {
-        updateFrameSettings({ documentName: newDocumentName });
+        updateFrameEditor({ documentName: newDocumentName });
       } else {
         onSaveTitle();
       }
@@ -201,12 +201,12 @@ export default function Preview() {
   };
 
   const handleSave = () => {
-    if (frameSettings.id.length === 0) {
-      const frameWithId = { ...frameSettings, id: v4() };
-      updateFrameSettings({ id: frameWithId.id });
+    if (frameEditor.id.length === 0) {
+      const frameWithId = { ...frameEditor, id: v4() };
+      updateFrameEditor({ id: frameWithId.id });
       saveFrame(frameWithId);
     } else {
-      saveFrame(frameSettings);
+      saveFrame(frameEditor);
     }
   };
 
@@ -380,7 +380,7 @@ export default function Preview() {
   const handleAddLayer = () => {
     if (!newText.trim()) return;
 
-    const { screenWidth, screenHeight } = frameSettings;
+    const { screenWidth, screenHeight } = frameEditor;
 
     dispatch(
       addNewTextLayer({

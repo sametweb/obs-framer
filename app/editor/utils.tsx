@@ -1,5 +1,5 @@
 import {
-  FrameSettings,
+  FrameEditor,
   ImageLayer,
   Layer,
   LayerEditorState,
@@ -28,7 +28,7 @@ const loadImage = (url: string): Promise<HTMLImageElement> => {
 
 export const renderCanvas = async (
   canvasRef: RefObject<HTMLCanvasElement>,
-  frameSettings: FrameSettings,
+  frameEditor: FrameEditor,
   state?: LayerEditorState
 ) => {
   const canvas = canvasRef.current;
@@ -38,11 +38,11 @@ export const renderCanvas = async (
   if (!ctx) return;
 
   // Clear the canvas to be fully transparent
-  ctx.clearRect(0, 0, frameSettings.screenWidth, frameSettings.screenHeight);
+  ctx.clearRect(0, 0, frameEditor.screenWidth, frameEditor.screenHeight);
 
   // Draw the frame gradient background
-  fillGradient(frameSettings.frameGradient, ctx, canvas);
-  ctx.fillRect(0, 0, frameSettings.screenWidth, frameSettings.screenHeight);
+  fillGradient(frameEditor.frameGradient, ctx, canvas);
+  ctx.fillRect(0, 0, frameEditor.screenWidth, frameEditor.screenHeight);
 
   // Create a temporary canvas for the frame mask
   const maskCanvas = document.createElement("canvas");
@@ -54,17 +54,17 @@ export const renderCanvas = async (
   // Draw the frame cutouts on the mask canvas
   drawFrame(
     maskCtx,
-    frameSettings.screenWidth,
-    frameSettings.screenHeight,
-    frameSettings.frameLeftWidth,
-    frameSettings.frameRightWidth,
-    frameSettings.frameTopWidth,
-    frameSettings.frameBottomWidth,
-    frameSettings.frameRadius,
-    frameSettings.frameSpacing,
-    frameSettings.frameCount,
-    frameSettings.frameInnerBorderWidth,
-    frameSettings.frameInnerBorderColor
+    frameEditor.screenWidth,
+    frameEditor.screenHeight,
+    frameEditor.frameLeftWidth,
+    frameEditor.frameRightWidth,
+    frameEditor.frameTopWidth,
+    frameEditor.frameBottomWidth,
+    frameEditor.frameRadius,
+    frameEditor.frameSpacing,
+    frameEditor.frameCount,
+    frameEditor.frameInnerBorderWidth,
+    frameEditor.frameInnerBorderColor
   );
 
   // Use the mask to cut out the frame
@@ -73,7 +73,7 @@ export const renderCanvas = async (
   ctx.globalCompositeOperation = "source-over";
 
   // Draw the frame borders
-  if (frameSettings.frameInnerBorderWidth > 0) {
+  if (frameEditor.frameInnerBorderWidth > 0) {
     const borderCanvas = document.createElement("canvas");
     borderCanvas.width = canvas.width;
     borderCanvas.height = canvas.height;
@@ -82,17 +82,17 @@ export const renderCanvas = async (
 
     drawFrameBorders(
       borderCtx,
-      frameSettings.screenWidth,
-      frameSettings.screenHeight,
-      frameSettings.frameLeftWidth,
-      frameSettings.frameRightWidth,
-      frameSettings.frameTopWidth,
-      frameSettings.frameBottomWidth,
-      frameSettings.frameRadius,
-      frameSettings.frameSpacing,
-      frameSettings.frameCount,
-      frameSettings.frameInnerBorderWidth,
-      frameSettings.frameInnerBorderColor
+      frameEditor.screenWidth,
+      frameEditor.screenHeight,
+      frameEditor.frameLeftWidth,
+      frameEditor.frameRightWidth,
+      frameEditor.frameTopWidth,
+      frameEditor.frameBottomWidth,
+      frameEditor.frameRadius,
+      frameEditor.frameSpacing,
+      frameEditor.frameCount,
+      frameEditor.frameInnerBorderWidth,
+      frameEditor.frameInnerBorderColor
     );
 
     ctx.drawImage(borderCanvas, 0, 0);

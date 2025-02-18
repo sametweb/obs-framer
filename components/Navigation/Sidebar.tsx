@@ -6,7 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useFrameSettings } from "@/hooks/use-frame-settings";
+import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { cn } from "@/lib/utils";
 import { HelpCircle, Settings } from "lucide-react";
 import Link from "next/link";
@@ -24,16 +24,16 @@ const bottomNavItems: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { frameSettings } = useFrameSettings();
+  const { frameEditor } = useFrameEditor();
   const [navItems, setNavItems] = useState(defaultNavItems);
 
   useEffect(() => {
-    if (frameSettings != null) {
+    if (frameEditor != null) {
       setNavItems([...defaultNavItems, ...editorNavItems]);
     } else {
       setNavItems(defaultNavItems);
     }
-  }, [pathname, frameSettings]);
+  }, [pathname, frameEditor]);
 
   return (
     <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-16 border-r bg-background z-40">

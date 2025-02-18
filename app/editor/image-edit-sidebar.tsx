@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFonts } from "@/hooks/use-fonts";
-import { useFrameSettings } from "@/hooks/use-frame-settings";
+import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { updateLayer } from "@/lib/store/layerEditorSlice";
 import { ImageLayer } from "@/lib/types";
 import { useEffect, useState } from "react";
 
 export function ImageEditSidebar() {
-  const { frameSettings } = useFrameSettings();
+  const { frameEditor } = useFrameEditor();
   const dispatch = useAppDispatch();
   const { layers, selectedLayerId } = useAppSelector(
     (state) => state.layerEditor
@@ -34,7 +34,7 @@ export function ImageEditSidebar() {
     }
   }, [selectedLayer]);
 
-  if (!frameSettings || !selectedLayer) return null;
+  if (!frameEditor || !selectedLayer) return null;
 
   if (!fontsLoaded) {
     return (

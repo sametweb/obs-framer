@@ -1,29 +1,27 @@
 import {
   deleteFrame,
   saveFrame,
-  selectFrameSettings,
+  selectFrameEditor,
   selectFrames,
   selectIsDefaultSettings,
   selectIsSaved,
-  updateFrameSettings,
-} from "@/lib/store/frameSettingsSlice";
+  updateFrameEditor,
+} from "@/lib/store/frameEditorSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { FrameSettings } from "@/lib/types";
+import { FrameEditor } from "@/lib/types";
 
-export function useFrameSettings() {
+export function useFrameEditor() {
   const dispatch = useAppDispatch();
-  const frameSettings = useAppSelector(selectFrameSettings);
+  const frameEditor = useAppSelector(selectFrameEditor);
   const frames = useAppSelector(selectFrames);
   const isDefaultSettings = useAppSelector(selectIsDefaultSettings);
   const isSaved = useAppSelector(selectIsSaved);
 
-  const updateFrameSettingsHandler = (
-    partialSettings: Partial<FrameSettings>
-  ) => {
-    dispatch(updateFrameSettings(partialSettings));
+  const updateFrameEditorHandler = (partialSettings: Partial<FrameEditor>) => {
+    dispatch(updateFrameEditor(partialSettings));
   };
 
-  const saveFrameHandler = (frame: FrameSettings) => {
+  const saveFrameHandler = (frame: FrameEditor) => {
     dispatch(saveFrame(frame));
   };
 
@@ -32,9 +30,9 @@ export function useFrameSettings() {
   };
 
   return {
-    frameSettings,
+    frameEditor,
     frames,
-    updateFrameSettings: updateFrameSettingsHandler,
+    updateFrameEditor: updateFrameEditorHandler,
     saveFrame: saveFrameHandler,
     deleteFrame: deleteFrameHandler,
     isDefaultSettings,

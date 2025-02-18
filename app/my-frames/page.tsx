@@ -2,11 +2,11 @@
 
 import { editorRoute } from "@/components/Navigation/routes";
 import { Button } from "@/components/ui/button";
-import { useFrameSettings } from "@/hooks/use-frame-settings";
-import { openFrameEditor } from "@/lib/store/frameSettingsSlice";
+import { useFrameEditor } from "@/hooks/use-frame-settings";
+import { openFrameEditor } from "@/lib/store/frameEditorSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { setState } from "@/lib/store/layerEditorSlice";
-import { FrameSettings, Layer } from "@/lib/types";
+import { FrameEditor, Layer } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { Plus, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -41,10 +41,10 @@ const CardFooter = dynamic(
 export default function Home() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { frames, deleteFrame } = useFrameSettings();
+  const { frames, deleteFrame } = useFrameEditor();
   const { layers } = useAppSelector((state) => state.layerEditor);
 
-  const onProjectClick = (frame: FrameSettings) => {
+  const onProjectClick = (frame: FrameEditor) => {
     // Reset text editor state before opening the frame
     dispatch(setState({ layers: layers || [], selectedLayerId: null }));
     dispatch(openFrameEditor(frame));
@@ -114,7 +114,7 @@ export default function Home() {
 }
 
 function FrameCanvas(
-  props: React.PropsWithChildren<{ frame: FrameSettings; layers: Layer[] }>
+  props: React.PropsWithChildren<{ frame: FrameEditor; layers: Layer[] }>
 ) {
   const ref = useRef<HTMLCanvasElement>(null);
 

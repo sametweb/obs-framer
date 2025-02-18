@@ -1,11 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import frameSettingsReducer from "./frameSettingsSlice";
+import frameEditorReducer from "./frameEditorSlice";
 import layerEditorReducer from "./layerEditorSlice";
 
 export const store = configureStore({
   reducer: {
     layerEditor: layerEditorReducer,
-    frameSettings: frameSettingsReducer,
+    frameEditor: frameEditorReducer,
   },
 });
 

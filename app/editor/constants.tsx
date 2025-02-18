@@ -1,4 +1,4 @@
-import { FrameSettings } from "@/lib/types";
+import { FrameEditor } from "@/lib/types";
 import { LinearGradientSettings } from "./utils";
 
 // Dropdown options for the screen size setting.
@@ -43,7 +43,7 @@ export const defaultFrameCount = 1;
 export const frameInnerBorderWidth = 1;
 export const frameInnerBorderColor = "#000000";
 
-export const defaultFrameSettings = (): FrameSettings => ({
+export const defaultFrameEditor = (): FrameEditor => ({
   id: "",
   documentName: "Untitled Document",
   frameGradient: defaultFrameGradient,

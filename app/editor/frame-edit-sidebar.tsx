@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { useFrameSettings } from "@/hooks/use-frame-settings";
+import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { ArrowLeftRight, Plus, Trash2 } from "lucide-react";
 import { commonResolutions, directions } from "./constants";
 import {
@@ -21,9 +21,9 @@ import {
 } from "./utils";
 
 export default function FrameEditSidebar() {
-  const { frameSettings, updateFrameSettings } = useFrameSettings();
+  const { frameEditor, updateFrameEditor } = useFrameEditor();
 
-  if (!frameSettings) {
+  if (!frameEditor) {
     return null;
   }
 
@@ -38,14 +38,14 @@ export default function FrameEditSidebar() {
     frameRightWidth,
     frameSpacing,
     frameTopWidth,
-  } = frameSettings;
+  } = frameEditor;
 
   const handleScreenSizeChange = (value: string) => {
     const selectedResolution = commonResolutions.find(
       (resolution) => resolution.name === value
     );
     if (selectedResolution) {
-      updateFrameSettings({
+      updateFrameEditor({
         screenWidth: selectedResolution.width,
         screenHeight: selectedResolution.height,
       });
@@ -54,7 +54,7 @@ export default function FrameEditSidebar() {
 
   const swapFrameLeftAndRight = () => {
     const left = frameLeftWidth;
-    updateFrameSettings({
+    updateFrameEditor({
       frameLeftWidth: frameRightWidth,
       frameRightWidth: left,
     });
@@ -62,14 +62,14 @@ export default function FrameEditSidebar() {
 
   const swapFrameTopAndBottom = () => {
     const top = frameTopWidth;
-    updateFrameSettings({
+    updateFrameEditor({
       frameTopWidth: frameBottomWidth,
       frameBottomWidth: top,
     });
   };
 
   const updateFrameGradientStops = (stops: GradientStop[]) => {
-    updateFrameSettings({
+    updateFrameEditor({
       frameGradient: { ...frameGradient, stops },
     });
   };
@@ -142,7 +142,7 @@ export default function FrameEditSidebar() {
                       type="number"
                       value={frameLeftWidth}
                       onChange={(e) =>
-                        updateFrameSettings({
+                        updateFrameEditor({
                           frameLeftWidth: Number(e.target.value),
                         })
                       }
@@ -168,7 +168,7 @@ export default function FrameEditSidebar() {
                       type="number"
                       value={frameRightWidth}
                       onChange={(e) =>
-                        updateFrameSettings({
+                        updateFrameEditor({
                           frameRightWidth: Number(e.target.value),
                         })
                       }
@@ -186,7 +186,7 @@ export default function FrameEditSidebar() {
                       type="number"
                       value={frameTopWidth}
                       onChange={(e) =>
-                        updateFrameSettings({
+                        updateFrameEditor({
                           frameTopWidth: Number(e.target.value),
                         })
                       }
@@ -212,7 +212,7 @@ export default function FrameEditSidebar() {
                       type="number"
                       value={frameBottomWidth}
                       onChange={(e) =>
-                        updateFrameSettings({
+                        updateFrameEditor({
                           frameBottomWidth: Number(e.target.value),
                         })
                       }
@@ -230,7 +230,7 @@ export default function FrameEditSidebar() {
                   type="color"
                   value={frameInnerBorderColor}
                   onChange={(e) => {
-                    updateFrameSettings({
+                    updateFrameEditor({
                       frameInnerBorderColor: e.target.value,
                     });
                   }}
@@ -241,7 +241,7 @@ export default function FrameEditSidebar() {
                   type="number"
                   value={frameInnerBorderWidth}
                   onChange={(e) =>
-                    updateFrameSettings({
+                    updateFrameEditor({
                       frameInnerBorderWidth: Number(e.target.value),
                     })
                   }
@@ -257,7 +257,7 @@ export default function FrameEditSidebar() {
                   type="number"
                   value={frameRadius}
                   onChange={(e) =>
-                    updateFrameSettings({
+                    updateFrameEditor({
                       frameRadius: Number(e.target.value),
                     })
                   }
@@ -273,7 +273,7 @@ export default function FrameEditSidebar() {
                   type="number"
                   value={frameCount}
                   onChange={(e) =>
-                    updateFrameSettings({
+                    updateFrameEditor({
                       frameCount: Math.max(Number(e.target.value), 1),
                     })
                   }
@@ -289,7 +289,7 @@ export default function FrameEditSidebar() {
                   type="number"
                   value={frameSpacing}
                   onChange={(e) =>
-                    updateFrameSettings({
+                    updateFrameEditor({
                       frameSpacing: Math.max(Number(e.target.value), 1),
                     })
                   }
@@ -309,7 +309,7 @@ export default function FrameEditSidebar() {
                 <Select
                   value={frameGradient.direction}
                   onValueChange={(value: LinearGradientSettings["direction"]) =>
-                    updateFrameSettings({
+                    updateFrameEditor({
                       frameGradient: { ...frameGradient, direction: value },
                     })
                   }

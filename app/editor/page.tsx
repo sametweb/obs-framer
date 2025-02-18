@@ -1,7 +1,7 @@
 "use client";
 import Preview from "@/components/Canvas/Preview";
 import { myFramesRoute } from "@/components/Navigation/routes";
-import { useFrameSettings } from "@/hooks/use-frame-settings";
+import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { useAppSelector } from "@/lib/store/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -10,7 +10,7 @@ import { ImageEditSidebar } from "./image-edit-sidebar";
 import { TextEditSidebar } from "./text-edit-sidebar";
 
 export default function Home() {
-  const { frameSettings } = useFrameSettings();
+  const { frameEditor } = useFrameEditor();
   const { layers, selectedLayerId } = useAppSelector(
     (state) => state.layerEditor
   );
@@ -18,12 +18,12 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!frameSettings) {
+    if (!frameEditor) {
       router.push(myFramesRoute.path);
     }
-  }, [frameSettings, router]);
+  }, [frameEditor, router]);
 
-  if (!frameSettings) {
+  if (!frameEditor) {
     return null;
   }
 

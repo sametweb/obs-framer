@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFonts } from "@/hooks/use-fonts";
-import { useFrameSettings } from "@/hooks/use-frame-settings";
+import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { GOOGLE_FONTS } from "@/lib/fonts";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import {
@@ -37,7 +37,7 @@ import { useState } from "react";
 import { v4 } from "uuid";
 
 export function TextEditSidebar() {
-  const { frameSettings } = useFrameSettings();
+  const { frameEditor } = useFrameEditor();
   const dispatch = useAppDispatch();
   const { layers, selectedLayerId } = useAppSelector(
     (state) => state.layerEditor
@@ -51,12 +51,12 @@ export function TextEditSidebar() {
       layer.id === selectedLayerId && layer.type == "text"
   );
 
-  if (!frameSettings) return null;
+  if (!frameEditor) return null;
 
   const handleAddLayer = () => {
     if (!newText.trim()) return;
 
-    const { screenWidth, screenHeight } = frameSettings;
+    const { screenWidth, screenHeight } = frameEditor;
 
     dispatch(
       addLayer({

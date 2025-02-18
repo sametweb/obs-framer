@@ -1,6 +1,19 @@
 import { LinearGradientSettings } from "@/app/editor/utils";
 
-export interface FrameSettings {
+export interface FrameEditorState {
+  /**
+   * Properties of the frame currently being edited. If this is null, that
+   * means the editor should be closed.
+   */
+  frameEditor: FrameEditor | null;
+  /**
+   * All the frames available in the projects route. User can select a project
+   * from this list to populate the frameEditor and start editing.
+   */
+  frames: FrameEditor[];
+}
+
+export interface FrameEditor {
   id: string;
   documentName: string;
   frameGradient: LinearGradientSettings;
