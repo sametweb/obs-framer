@@ -1,16 +1,17 @@
 import { LinearGradientSettings } from "@/app/editor/utils";
 
-export interface FrameEditorState {
-  /**
-   * Properties of the frame currently being edited. If this is null, that
-   * means the editor should be closed.
-   */
-  frameEditor: FrameEditor | null;
-  /**
-   * All the frames available in the projects route. User can select a project
-   * from this list to populate the frameEditor and start editing.
-   */
+/**
+ * Represents the state of the editor, including the collection of frame editors,
+ * the currently active frame editor, and the currently active layer editor.
+ *
+ * @property frames - An array of frame editors that are present in the editor state.
+ * @property frameEditor - The currently active frame editor, or null if none is selected.
+ * @property layerEditor - The currently active layer editor, or null if none is selected.
+ */
+export interface EditorState {
   frames: FrameEditor[];
+  frameEditor: FrameEditor | null;
+  layerEditor: Layer | null;
 }
 
 export interface FrameEditor {
@@ -28,6 +29,7 @@ export interface FrameEditor {
   frameCount: number;
   frameInnerBorderWidth: number;
   frameInnerBorderColor: string;
+  layers: Layer[];
   createdAt: string;
   modifiedAt: string;
 }
@@ -74,11 +76,6 @@ export type TextLayer = CommonLayerProperties & TextLayerProperties;
 export type ImageLayer = CommonLayerProperties & ImageLayerProperties;
 
 export type Layer = TextLayer | ImageLayer;
-
-export interface LayerEditorState {
-  layers: Layer[];
-  selectedLayerId: string | null;
-}
 
 export interface DragState {
   isDragging: boolean;

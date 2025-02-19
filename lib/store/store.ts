@@ -1,12 +1,8 @@
+import editorReducer from "@/lib/store/editorSlice";
 import { configureStore } from "@reduxjs/toolkit";
-import frameEditorReducer from "./frameEditorSlice";
-import layerEditorReducer from "./layerEditorSlice";
 
 export const store = configureStore({
-  reducer: {
-    layerEditor: layerEditorReducer,
-    frameEditor: frameEditorReducer,
-  },
+  reducer: editorReducer,
 });
 
 export type RootState = ReturnType<typeof store.getState>;

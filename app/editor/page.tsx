@@ -2,7 +2,6 @@
 import Preview from "@/components/Canvas/Preview";
 import { myFramesRoute } from "@/components/Navigation/routes";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
-import { useAppSelector } from "@/lib/store/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import FrameEditSidebar from "./frame-edit-sidebar";
@@ -11,9 +10,7 @@ import { TextEditSidebar } from "./text-edit-sidebar";
 
 export default function Home() {
   const { frameEditor } = useFrameEditor();
-  const { layers, selectedLayerId } = useAppSelector(
-    (state) => state.layerEditor
-  );
+  const { layers, layerEditor } = useFrameEditor();
 
   const router = useRouter();
 
@@ -28,14 +25,14 @@ export default function Home() {
   }
 
   const shouldShowTextEditSidebar = (): boolean => {
-    if (selectedLayerId == null) return false;
-    const layer = layers.find((layer) => layer.id === selectedLayerId);
+    if (!layerEditor) return false;
+    const layer = layers?.find((layer) => layer.id === layerEditor.id);
     return layer!.type === "text";
   };
 
   const shouldShowImageEditSidebar = (): boolean => {
-    if (selectedLayerId == null) return false;
-    const layer = layers.find((layer) => layer.id === selectedLayerId);
+    if (!layerEditor) return false;
+    const layer = layers?.find((layer) => layer.id === layerEditor.id);
     return layer!.type === "image";
   };
 

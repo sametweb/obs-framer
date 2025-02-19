@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFonts } from "@/hooks/use-fonts";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { GOOGLE_FONTS } from "@/lib/fonts";
-import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { useAppDispatch } from "@/lib/store/hooks";
 import {
   addLayer,
   deleteLayer,
@@ -39,16 +39,14 @@ import { v4 } from "uuid";
 export function TextEditSidebar() {
   const { frameEditor } = useFrameEditor();
   const dispatch = useAppDispatch();
-  const { layers, selectedLayerId } = useAppSelector(
-    (state) => state.layerEditor
-  );
+  const { layers, layerEditor } = useFrameEditor();
   const [newText, setNewText] = useState("");
   const { fontsLoaded } = useFonts();
 
   // Find the selected layer and ensure it's a text layer
-  const selectedLayer = layers.find(
+  const selectedLayer = layers?.find(
     (layer): layer is TextLayer =>
-      layer.id === selectedLayerId && layer.type == "text"
+      layer.id === layerEditor?.id && layer.type == "text"
   );
 
   if (!frameEditor) return null;
@@ -105,7 +103,7 @@ export function TextEditSidebar() {
   }
 
   // Create a reversed copy of the layers array for display
-  const displayLayers = [...layers].reverse();
+  const displayLayers = [...(layers ?? [])].reverse();
 
   const getLayerName = (layer: Layer) => {
     if (layer.hasOwnProperty("text")) {
@@ -152,7 +150,7 @@ export function TextEditSidebar() {
                       <div
                         key={layer.id}
                         className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer ${
-                          layer.id === selectedLayerId
+                          layer.id === layerEditor?.id
                             ? "bg-accent"
                             : "hover:bg-accent/50"
                         }`}

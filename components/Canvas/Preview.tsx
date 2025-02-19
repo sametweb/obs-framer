@@ -7,15 +7,14 @@ import {
 import { myFramesRoute } from "@/components/Navigation/routes";
 import { Button } from "@/components/ui/button";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
-import { closeFrameEditor } from "@/lib/store/frameEditorSlice";
-import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import {
   addLayer,
-  addNewTextLayer,
+  addTextLayer,
+  closeFrameEditor,
   selectLayer,
-  setState,
   updateLayer,
-} from "@/lib/store/layerEditorSlice";
+} from "@/lib/store/editorSlice";
+import { useAppDispatch } from "@/lib/store/hooks";
 import { DragState, ImageLayer } from "@/lib/types";
 import { Popover } from "@radix-ui/react-popover";
 import clsx from "clsx";
@@ -52,7 +51,7 @@ export default function Preview() {
     useFrameEditor();
 
   const dispatch = useAppDispatch();
-  const state = useAppSelector((state) => state.layerEditor);
+  const state = useFrameEditor();
   const router = useRouter();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -71,12 +70,12 @@ export default function Preview() {
     }
 
     if (!canvasRef.current) return;
-    renderCanvas(canvasRef, frameEditor, state);
+    renderCanvas(canvasRef, state);
   }, [frameEditor, router, state]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!state.selectedLayerId) return;
+      if (!state.layerEditor) return;
 
       const moveAmount = e.shiftKey ? 10 : 1;
       let dx = 0;
@@ -101,14 +100,14 @@ export default function Preview() {
 
       e.preventDefault();
 
-      const layer = state.layers.find(
-        (layer) => layer.id === state.selectedLayerId
+      const layer = state.frameEditor?.layers.find(
+        (layer) => layer.id === state.layerEditor?.id
       );
       if (!layer) return;
 
       dispatch(
         updateLayer({
-          id: state.selectedLayerId,
+          id: state.layerEditor.id,
           updates: {
             x: ("x" in layer ? layer.x : 0) + dx,
             y: ("y" in layer ? layer.y : 0) + dy,
@@ -119,7 +118,7 @@ export default function Preview() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [state.selectedLayerId, dispatch, state.layers]);
+  }, [dispatch, state.frameEditor?.layers, state.layerEditor]);
 
   const handleLayerSelect = useCallback(
     (layerId: string) => {
@@ -225,7 +224,6 @@ export default function Preview() {
 
   const handleXClick = () => {
     dispatch(closeFrameEditor());
-    dispatch(setState({ layers: [], selectedLayerId: null }));
     router.push(myFramesRoute.path);
   };
 
@@ -246,12 +244,16 @@ export default function Preview() {
   const handleMouseDown = (e: React.MouseEvent) => {
     const pos = getMousePos(e);
 
+    const layerCount = (state.frameEditor?.layers ?? []).length;
     // Check each layer in reverse order (top to bottom)
-    for (let i = state.layers.length - 1; i >= 0; i--) {
-      const layer = state.layers[i];
+    for (let i = layerCount - 1; i >= 0; i--) {
+      let layer = state.frameEditor?.layers[i];
+
+      if (!layer) return;
 
       // Check resize handles for image layers
-      if ("url" in layer && layer.id === state.selectedLayerId) {
+      if (layer?.type == "image" && layer.id === state.layerEditor?.id) {
+        layer = layer as ImageLayer;
         const resizeHandles: Array<"nw" | "ne" | "sw" | "se"> = [
           "nw",
           "ne",
@@ -259,7 +261,9 @@ export default function Preview() {
           "se",
         ];
         for (const handle of resizeHandles) {
-          if (isPointInResizeHandle(pos.x, pos.y, layer, handle)) {
+          if (
+            isPointInResizeHandle(pos.x, pos.y, layer as ImageLayer, handle)
+          ) {
             setDragState({
               ...defaultDragState,
               isDragging: true,
@@ -299,10 +303,12 @@ export default function Preview() {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!dragState.isDragging || !state.selectedLayerId) return;
+    if (!dragState.isDragging || !state.layerEditor) return;
     const pos = getMousePos(e);
 
-    const layer = state.layers.find((l) => l.id === state.selectedLayerId);
+    const layer = state.frameEditor?.layers.find(
+      (l) => l.id === state.frameEditor?.id
+    );
     if (!layer) return;
 
     if (dragState.resizing && layer.type == "image") {
@@ -348,7 +354,7 @@ export default function Preview() {
 
       dispatch(
         updateLayer({
-          id: state.selectedLayerId,
+          id: state.frameEditor?.id,
           updates: {
             x: newX,
             y: newY,
@@ -363,7 +369,7 @@ export default function Preview() {
 
       dispatch(
         updateLayer({
-          id: state.selectedLayerId,
+          id: state.frameEditor?.id,
           updates: {
             x: dragState.layerStartX + dx,
             y: dragState.layerStartY + dy,
@@ -383,7 +389,7 @@ export default function Preview() {
     const { screenWidth, screenHeight } = frameEditor;
 
     dispatch(
-      addNewTextLayer({
+      addTextLayer({
         text: newText,
         width: screenWidth,
         height: screenHeight,

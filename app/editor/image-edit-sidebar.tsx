@@ -5,30 +5,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFonts } from "@/hooks/use-fonts";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
-import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { useAppDispatch } from "@/lib/store/hooks";
 import { updateLayer } from "@/lib/store/layerEditorSlice";
 import { ImageLayer } from "@/lib/types";
 import { useEffect, useState } from "react";
 
 export function ImageEditSidebar() {
-  const { frameEditor } = useFrameEditor();
+  const { frameEditor, layerEditor } = useFrameEditor();
   const dispatch = useAppDispatch();
-  const { layers, selectedLayerId } = useAppSelector(
-    (state) => state.layerEditor
-  );
   const { fontsLoaded } = useFonts();
 
-  // Find the selected layer and ensure it's an image layer
-  const selectedLayer = layers.find(
-    (layer): layer is ImageLayer =>
-      layer.id === selectedLayerId && layer.type == "image"
+  const selectedLayer =
+    layerEditor?.type === "image" ? (layerEditor as ImageLayer) : undefined;
+  const [width, setWidth] = useState(selectedLayer ? selectedLayer.width : 0);
+  const [height, setHeight] = useState(
+    selectedLayer ? selectedLayer.height : 0
   );
 
-  const [width, setWidth] = useState(selectedLayer?.width);
-  const [height, setHeight] = useState(selectedLayer?.height);
-
   useEffect(() => {
-    if (selectedLayer && selectedLayer.type == "image") {
+    if (selectedLayer) {
       setWidth(selectedLayer.width);
       setHeight(selectedLayer.height);
     }

@@ -1,10 +1,4 @@
-import {
-  FrameEditor,
-  ImageLayer,
-  Layer,
-  LayerEditorState,
-  TextLayer,
-} from "@/lib/types";
+import { EditorState, ImageLayer, Layer, TextLayer } from "@/lib/types";
 import { RefObject } from "react";
 
 // Cache for loaded images
@@ -28,14 +22,17 @@ const loadImage = (url: string): Promise<HTMLImageElement> => {
 
 export const renderCanvas = async (
   canvasRef: RefObject<HTMLCanvasElement>,
-  frameEditor: FrameEditor,
-  state?: LayerEditorState
+  state: EditorState
 ) => {
   const canvas = canvasRef.current;
   if (!canvas) return;
 
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return;
+
+  if (!state.frameEditor) return;
+
+  const { frameEditor } = state;
 
   // Clear the canvas to be fully transparent
   ctx.clearRect(0, 0, frameEditor.screenWidth, frameEditor.screenHeight);
@@ -103,24 +100,24 @@ export const renderCanvas = async (
     ctx.save();
     // Pre-load all images before drawing
     await Promise.all(
-      state.layers
+      (state.frameEditor?.layers ?? [])
         .filter((layer): layer is ImageLayer => layer.type == "image")
         .map((layer) => loadImage(layer.url))
     );
 
     // Draw all layers
-    for (const layer of state.layers) {
+    for (const layer of state.frameEditor?.layers ?? []) {
       if (layer.type == "text") {
         drawTextLayer(
           ctx,
           layer as TextLayer,
-          layer.id === state.selectedLayerId
+          layer.id === state.layerEditor?.id
         );
       } else if (layer.type == "image") {
         await drawImageLayer(
           ctx,
           layer as ImageLayer,
-          layer.id === state.selectedLayerId
+          layer.id === state.layerEditor?.id
         );
       }
     }

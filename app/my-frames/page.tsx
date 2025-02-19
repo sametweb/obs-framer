@@ -3,10 +3,9 @@
 import { editorRoute } from "@/components/Navigation/routes";
 import { Button } from "@/components/ui/button";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
-import { openFrameEditor } from "@/lib/store/frameEditorSlice";
-import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
-import { setState } from "@/lib/store/layerEditorSlice";
-import { FrameEditor, Layer } from "@/lib/types";
+import { openFrameEditor } from "@/lib/store/editorSlice";
+import { useAppDispatch } from "@/lib/store/hooks";
+import { EditorState, FrameEditor } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import { Plus, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -41,19 +40,17 @@ const CardFooter = dynamic(
 export default function Home() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { frames, deleteFrame } = useFrameEditor();
-  const { layers } = useAppSelector((state) => state.layerEditor);
+  const editor = useFrameEditor();
+  const { frames, deleteFrame } = editor;
+  const { layers } = useFrameEditor();
 
   const onProjectClick = (frame: FrameEditor) => {
-    // Reset text editor state before opening the frame
-    dispatch(setState({ layers: layers || [], selectedLayerId: null }));
     dispatch(openFrameEditor(frame));
     router.push(editorRoute.path);
   };
 
   const onAddNewClick = () => {
     // Reset text editor state before creating a new frame
-    dispatch(setState({ layers: [], selectedLayerId: null }));
     dispatch(openFrameEditor());
     router.push(editorRoute.path);
   };
@@ -93,7 +90,7 @@ export default function Home() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <FrameCanvas frame={frame} layers={layers} />
+                    <FrameCanvas editor={editor} />
                   </CardContent>
                   <CardFooter className="flex justify-end">
                     <Trash2
@@ -113,24 +110,18 @@ export default function Home() {
   );
 }
 
-function FrameCanvas(
-  props: React.PropsWithChildren<{ frame: FrameEditor; layers: Layer[] }>
-) {
+function FrameCanvas(props: React.PropsWithChildren<{ editor: EditorState }>) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const state = {
-      layers: props.layers || [],
-      selectedLayerId: null,
-    };
-    renderCanvas(ref, props.frame, state);
-  }, [props.frame, props.layers]);
+    renderCanvas(ref, props.editor);
+  }, [props.editor]);
 
   return (
     <canvas
       ref={ref}
-      width={props.frame.screenWidth}
-      height={props.frame.screenHeight}
+      width={props.editor.frameEditor?.screenWidth}
+      height={props.editor.frameEditor?.screenHeight}
       className="max-w-full h-auto"
     />
   );

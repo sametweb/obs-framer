@@ -58,6 +58,7 @@ export const defaultFrameEditor = (): FrameEditor => ({
   frameCount: defaultFrameCount,
   frameInnerBorderWidth: frameInnerBorderWidth,
   frameInnerBorderColor: frameInnerBorderColor,
+  layers: [],
   createdAt: new Date().toISOString(),
   modifiedAt: new Date().toISOString(),
 });
