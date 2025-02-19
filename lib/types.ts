@@ -69,6 +69,7 @@ export interface ImageLayerProperties {
   width: number;
   height: number;
   url: string;
+  fileName: string;
 }
 
 export type TextLayer = CommonLayerProperties & TextLayerProperties;

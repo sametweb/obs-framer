@@ -135,6 +135,7 @@ export default function Preview() {
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    const fileName = file?.name;
     if (!file || !file.type.startsWith("image/")) return;
 
     const reader = new FileReader();
@@ -148,6 +149,7 @@ export default function Preview() {
         const imageLayer: ImageLayer = {
           id: v4(),
           type: "image",
+          fileName: fileName ?? "",
           x: screenWidth / 2 - newWidth / 2,
           y: screenHeight / 2 - newHeight / 2,
           width: newWidth,

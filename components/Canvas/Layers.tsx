@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { deleteLayer, moveLayer, selectLayer } from "@/lib/store/editorSlice";
 import { useAppDispatch } from "@/lib/store/hooks";
-import { Layer, TextLayer } from "@/lib/types";
+import { ImageLayer, Layer, TextLayer } from "@/lib/types";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 
 export default function Layers() {
@@ -18,8 +18,10 @@ export default function Layers() {
   };
 
   const getLayerName = (layer: Layer) => {
-    if (layer.hasOwnProperty("text")) {
+    if (layer.type === "text") {
       return (layer as TextLayer).text;
+    } else if (layer.type === "image") {
+      return (layer as ImageLayer).fileName;
     }
     return layer.id;
   };
