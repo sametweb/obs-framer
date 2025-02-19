@@ -16,14 +16,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFonts } from "@/hooks/use-fonts";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { GOOGLE_FONTS } from "@/lib/fonts";
-import { useAppDispatch } from "@/lib/store/hooks";
 import {
   addLayer,
   deleteLayer,
   moveLayer,
   selectLayer,
   updateLayer,
-} from "@/lib/store/layerEditorSlice";
+} from "@/lib/store/editorSlice";
+import { useAppDispatch } from "@/lib/store/hooks";
 import { Layer, TextLayer } from "@/lib/types";
 import {
   Bold,

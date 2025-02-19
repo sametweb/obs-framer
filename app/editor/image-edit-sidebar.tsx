@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useFonts } from "@/hooks/use-fonts";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
+import { updateLayer } from "@/lib/store/editorSlice";
 import { useAppDispatch } from "@/lib/store/hooks";
-import { updateLayer } from "@/lib/store/layerEditorSlice";
 import { ImageLayer } from "@/lib/types";
 import { useEffect, useState } from "react";
 
