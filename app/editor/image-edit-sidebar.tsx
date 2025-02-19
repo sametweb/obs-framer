@@ -1,8 +1,10 @@
 "use client";
 
+import Layers from "@/components/Canvas/Layers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFonts } from "@/hooks/use-fonts";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { updateLayer } from "@/lib/store/editorSlice";
@@ -49,44 +51,51 @@ export function ImageEditSidebar() {
   };
 
   return (
-    <aside className="w-[300px] border-r border-border bg-card p-6">
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <div className="flex space-x-2 items-end">
-            <div>
-              <Label className="text-xs" htmlFor="width">
-                Width
-              </Label>
-              <Input
-                id="width"
-                type="number"
-                placeholder="Width"
-                value={width}
-                onChange={(e) => {
-                  const newWidth = parseInt(e.target.value);
-                  setWidth(newWidth);
-                }}
-              />
+    <aside className="w-[300px] border-r bg-background">
+      <ScrollArea className="h-[calc(100vh-120px)]">
+        <div className="p-4">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Layers />
             </div>
-            <div>
-              <Label className="text-xs" htmlFor="width">
-                Height
-              </Label>
-              <Input
-                id="height"
-                type="number"
-                placeholder="Height"
-                value={height}
-                onChange={(e) => {
-                  const newHeight = parseInt(e.target.value);
-                  setHeight(newHeight);
-                }}
-              />
+            <div className="space-y-2">
+              <div className="flex space-x-2 items-end">
+                <div>
+                  <Label className="text-xs" htmlFor="width">
+                    Width
+                  </Label>
+                  <Input
+                    id="width"
+                    type="number"
+                    placeholder="Width"
+                    value={width}
+                    onChange={(e) => {
+                      const newWidth = parseInt(e.target.value);
+                      setWidth(newWidth);
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs" htmlFor="width">
+                    Height
+                  </Label>
+                  <Input
+                    id="height"
+                    type="number"
+                    placeholder="Height"
+                    value={height}
+                    onChange={(e) => {
+                      const newHeight = parseInt(e.target.value);
+                      setHeight(newHeight);
+                    }}
+                  />
+                </div>
+                <Button onClick={onSizeSave}>Save</Button>
+              </div>
             </div>
-            <Button onClick={onSizeSave}>Save</Button>
           </div>
         </div>
-      </div>
+      </ScrollArea>
     </aside>
   );
 }
