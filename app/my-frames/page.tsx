@@ -42,7 +42,6 @@ export default function Home() {
   const dispatch = useAppDispatch();
   const editor = useFrameEditor();
   const { frames, deleteFrame } = editor;
-  const { layers } = useFrameEditor();
 
   const onProjectClick = (frame: FrameEditor) => {
     dispatch(openFrameEditor(frame));
@@ -72,27 +71,29 @@ export default function Home() {
               </p>
             </div>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {frames.length > 0 &&
               frames.map((frame) => (
                 <Card
                   key={frame.id}
                   onClick={() => onProjectClick(frame)}
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:border-zinc-400"
                 >
                   <CardHeader>
-                    <CardTitle>{frame.documentName ?? "(no name)"}</CardTitle>
+                    <CardTitle className="text-md font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+                      {frame.documentName ?? "(no name)"}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <FrameCanvas editor={editor} frameToRender={frame} />
+                  </CardContent>
+                  <CardFooter className="flex justify-between">
                     <CardDescription>
-                      Last modified:{" "}
                       {formatDistanceToNow(new Date(frame.modifiedAt), {
                         addSuffix: true,
                       })}
                     </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <FrameCanvas editor={editor} />
-                  </CardContent>
-                  <CardFooter className="flex justify-end">
+
                     <Trash2
                       size={16}
                       onClick={(e) => {
@@ -110,18 +111,24 @@ export default function Home() {
   );
 }
 
-function FrameCanvas(props: React.PropsWithChildren<{ editor: EditorState }>) {
+function FrameCanvas(
+  props: React.PropsWithChildren<{
+    editor: EditorState;
+    frameToRender: FrameEditor;
+  }>
+) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    renderCanvas(ref, props.editor);
-  }, [props.editor]);
+    if (!ref.current) return;
+    renderCanvas(ref, props.editor, props.frameToRender);
+  }, [props.editor, props.frameToRender]);
 
   return (
     <canvas
       ref={ref}
-      width={props.editor.frameEditor?.screenWidth}
-      height={props.editor.frameEditor?.screenHeight}
+      width={props.frameToRender.screenWidth}
+      height={props.frameToRender.screenHeight}
       className="max-w-full h-auto"
     />
   );

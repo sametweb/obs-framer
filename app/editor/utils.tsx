@@ -1,4 +1,10 @@
-import { EditorState, ImageLayer, Layer, TextLayer } from "@/lib/types";
+import {
+  EditorState,
+  FrameEditor,
+  ImageLayer,
+  Layer,
+  TextLayer,
+} from "@/lib/types";
 import { RefObject } from "react";
 
 // Cache for loaded images
@@ -22,7 +28,8 @@ const loadImage = (url: string): Promise<HTMLImageElement> => {
 
 export const renderCanvas = async (
   canvasRef: RefObject<HTMLCanvasElement>,
-  state: EditorState
+  state: EditorState,
+  frameToRender: FrameEditor
 ) => {
   const canvas = canvasRef.current;
   if (!canvas) return;
@@ -30,16 +37,12 @@ export const renderCanvas = async (
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return;
 
-  if (!state.frameEditor) return;
-
-  const { frameEditor } = state;
-
   // Clear the canvas to be fully transparent
-  ctx.clearRect(0, 0, frameEditor.screenWidth, frameEditor.screenHeight);
+  ctx.clearRect(0, 0, frameToRender.screenWidth, frameToRender.screenHeight);
 
   // Draw the frame gradient background
-  fillGradient(frameEditor.frameGradient, ctx, canvas);
-  ctx.fillRect(0, 0, frameEditor.screenWidth, frameEditor.screenHeight);
+  fillGradient(frameToRender.frameGradient, ctx, canvas);
+  ctx.fillRect(0, 0, frameToRender.screenWidth, frameToRender.screenHeight);
 
   // Create a temporary canvas for the frame mask
   const maskCanvas = document.createElement("canvas");
@@ -51,17 +54,17 @@ export const renderCanvas = async (
   // Draw the frame cutouts on the mask canvas
   drawFrame(
     maskCtx,
-    frameEditor.screenWidth,
-    frameEditor.screenHeight,
-    frameEditor.frameLeftWidth,
-    frameEditor.frameRightWidth,
-    frameEditor.frameTopWidth,
-    frameEditor.frameBottomWidth,
-    frameEditor.frameRadius,
-    frameEditor.frameSpacing,
-    frameEditor.frameCount,
-    frameEditor.frameInnerBorderWidth,
-    frameEditor.frameInnerBorderColor
+    frameToRender.screenWidth,
+    frameToRender.screenHeight,
+    frameToRender.frameLeftWidth,
+    frameToRender.frameRightWidth,
+    frameToRender.frameTopWidth,
+    frameToRender.frameBottomWidth,
+    frameToRender.frameRadius,
+    frameToRender.frameSpacing,
+    frameToRender.frameCount,
+    frameToRender.frameInnerBorderWidth,
+    frameToRender.frameInnerBorderColor
   );
 
   // Use the mask to cut out the frame
@@ -70,7 +73,7 @@ export const renderCanvas = async (
   ctx.globalCompositeOperation = "source-over";
 
   // Draw the frame borders
-  if (frameEditor.frameInnerBorderWidth > 0) {
+  if (frameToRender.frameInnerBorderWidth > 0) {
     const borderCanvas = document.createElement("canvas");
     borderCanvas.width = canvas.width;
     borderCanvas.height = canvas.height;
@@ -79,50 +82,47 @@ export const renderCanvas = async (
 
     drawFrameBorders(
       borderCtx,
-      frameEditor.screenWidth,
-      frameEditor.screenHeight,
-      frameEditor.frameLeftWidth,
-      frameEditor.frameRightWidth,
-      frameEditor.frameTopWidth,
-      frameEditor.frameBottomWidth,
-      frameEditor.frameRadius,
-      frameEditor.frameSpacing,
-      frameEditor.frameCount,
-      frameEditor.frameInnerBorderWidth,
-      frameEditor.frameInnerBorderColor
+      frameToRender.screenWidth,
+      frameToRender.screenHeight,
+      frameToRender.frameLeftWidth,
+      frameToRender.frameRightWidth,
+      frameToRender.frameTopWidth,
+      frameToRender.frameBottomWidth,
+      frameToRender.frameRadius,
+      frameToRender.frameSpacing,
+      frameToRender.frameCount,
+      frameToRender.frameInnerBorderWidth,
+      frameToRender.frameInnerBorderColor
     );
 
     ctx.drawImage(borderCanvas, 0, 0);
   }
 
-  // Only draw layers if state is provided
-  if (state) {
-    ctx.save();
-    // Pre-load all images before drawing
-    await Promise.all(
-      (state.frameEditor?.layers ?? [])
-        .filter((layer): layer is ImageLayer => layer.type == "image")
-        .map((layer) => loadImage(layer.url))
-    );
+  ctx.save();
+  // Pre-load all images before drawing
+  await Promise.all(
+    frameToRender.layers
+      .filter((layer): layer is ImageLayer => layer.type == "image")
+      .map((layer) => loadImage(layer.url))
+  );
 
-    // Draw all layers
-    for (const layer of state.frameEditor?.layers ?? []) {
-      if (layer.type == "text") {
-        drawTextLayer(
-          ctx,
-          layer as TextLayer,
-          layer.id === state.layerEditor?.id
-        );
-      } else if (layer.type == "image") {
-        await drawImageLayer(
-          ctx,
-          layer as ImageLayer,
-          layer.id === state.layerEditor?.id
-        );
-      }
+  // Draw all layers
+  for (const layer of frameToRender.layers) {
+    if (layer.type == "text") {
+      drawTextLayer(
+        ctx,
+        layer as TextLayer,
+        layer.id === state.layerEditor?.id
+      );
+    } else if (layer.type == "image") {
+      await drawImageLayer(
+        ctx,
+        layer as ImageLayer,
+        layer.id === state.layerEditor?.id
+      );
     }
-    ctx.restore();
   }
+  ctx.restore();
 };
 
 const drawTextLayer = (

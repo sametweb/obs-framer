@@ -27,13 +27,13 @@ export default function Home() {
   const shouldShowTextEditSidebar = (): boolean => {
     if (!layerEditor) return false;
     const layer = layers?.find((layer) => layer.id === layerEditor.id);
-    return layer!.type === "text";
+    return layer?.type === "text";
   };
 
   const shouldShowImageEditSidebar = (): boolean => {
     if (!layerEditor) return false;
     const layer = layers?.find((layer) => layer.id === layerEditor.id);
-    return layer!.type === "image";
+    return layer?.type === "image";
   };
 
   return (

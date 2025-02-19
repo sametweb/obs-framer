@@ -64,13 +64,10 @@ export default function Preview() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!frameEditor) {
-      router.push(myFramesRoute.path);
-      return;
-    }
-
     if (!canvasRef.current) return;
-    renderCanvas(canvasRef, state);
+    if (frameEditor) {
+      renderCanvas(canvasRef, state, frameEditor);
+    }
   }, [frameEditor, router, state]);
 
   useEffect(() => {
