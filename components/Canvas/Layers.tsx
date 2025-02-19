@@ -31,7 +31,7 @@ export default function Layers() {
   return (
     <>
       <Label>Layers</Label>
-      <ScrollArea className="h-[200px] border rounded-md p-2">
+      <ScrollArea className="h-[300px] border rounded-md p-2">
         {displayLayers.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-4">
             No text layers yet. Add some text to get started.
