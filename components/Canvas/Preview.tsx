@@ -307,7 +307,7 @@ export default function Preview() {
     const pos = getMousePos(e);
 
     const layer = state.frameEditor?.layers.find(
-      (l) => l.id === state.frameEditor?.id
+      (l) => l.id === state.layerEditor?.id
     );
     if (!layer) return;
 
@@ -354,7 +354,7 @@ export default function Preview() {
 
       dispatch(
         updateLayer({
-          id: state.frameEditor?.id,
+          id: state.layerEditor?.id,
           updates: {
             x: newX,
             y: newY,
@@ -369,7 +369,7 @@ export default function Preview() {
 
       dispatch(
         updateLayer({
-          id: state.frameEditor?.id,
+          id: state.layerEditor?.id,
           updates: {
             x: dragState.layerStartX + dx,
             y: dragState.layerStartY + dy,
