@@ -160,6 +160,11 @@ export default function Preview() {
       image.src = event.target?.result as string;
     };
     reader.readAsDataURL(file);
+
+    // Reset the file input value to allow the same file to be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleSaveTitle: FocusEventHandler<HTMLHeadingElement> = (e) => {
