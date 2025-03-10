@@ -23,11 +23,15 @@ export function ImageEditSidebar() {
   const [height, setHeight] = useState(
     selectedLayer ? selectedLayer.height : 0
   );
+  const [x, setX] = useState(selectedLayer ? selectedLayer.x : 0);
+  const [y, setY] = useState(selectedLayer ? selectedLayer.y : 0);
 
   useEffect(() => {
     if (selectedLayer) {
       setWidth(selectedLayer.width);
       setHeight(selectedLayer.height);
+      setX(selectedLayer.x);
+      setY(selectedLayer.y);
     }
   }, [selectedLayer]);
 
@@ -50,6 +54,13 @@ export function ImageEditSidebar() {
     }
   };
 
+  const onPositionSave = () => {
+    if (x != null && y != null) {
+      const updates = { id: selectedLayer.id, updates: { x, y } };
+      dispatch(updateLayer(updates));
+    }
+  };
+
   return (
     <aside className="w-[300px] border-r bg-background">
       <ScrollArea className="h-[calc(100vh-120px)]">
@@ -59,7 +70,42 @@ export function ImageEditSidebar() {
               <Layers />
             </div>
             <div className="space-y-2">
-              <div className="flex space-x-2 items-end">
+              <Label>Position</Label>
+              <div className="flex space-x-2 items-end mt-2">
+                <div>
+                  <Label className="text-xs" htmlFor="x">
+                    X
+                  </Label>
+                  <Input
+                    id="x"
+                    type="number"
+                    value={Math.round(x)}
+                    onChange={(e) => {
+                      const newX = parseInt(e.target.value);
+                      setX(newX);
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs" htmlFor="y">
+                    Y
+                  </Label>
+                  <Input
+                    id="y"
+                    type="number"
+                    value={Math.round(y)}
+                    onChange={(e) => {
+                      const newY = parseInt(e.target.value);
+                      setY(newY);
+                    }}
+                  />
+                </div>
+                <Button onClick={onPositionSave}>Save</Button>
+              </div>
+            </div>
+            <div>
+              <Label>Size</Label>
+              <div className="flex space-x-2 items-end mt-2">
                 <div>
                   <Label className="text-xs" htmlFor="width">
                     Width
@@ -76,7 +122,7 @@ export function ImageEditSidebar() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs" htmlFor="width">
+                  <Label className="text-xs" htmlFor="height">
                     Height
                   </Label>
                   <Input
