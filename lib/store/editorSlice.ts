@@ -44,6 +44,8 @@ const editorSlice = createSlice({
       }
 
       state.frameEditor = frameToSave;
+      // Reset selected layer when saved.
+      state.layerEditor = null;
     },
     deleteFrame: (state, action: PayloadAction<string>) => {
       state.frames = state.frames.filter(
