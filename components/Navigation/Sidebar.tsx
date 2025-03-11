@@ -12,9 +12,9 @@ import { HelpCircle, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { editorRoute, homeRoute, myFramesRoute, NavItem } from "./routes";
+import { browseRoute, editorRoute, NavItem } from "./routes";
 
-const defaultNavItems: NavItem[] = [homeRoute, myFramesRoute];
+const defaultNavItems: NavItem[] = [browseRoute];
 const editorNavItems: NavItem[] = [editorRoute];
 
 const bottomNavItems: NavItem[] = [

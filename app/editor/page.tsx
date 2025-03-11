@@ -1,6 +1,6 @@
 "use client";
 import Preview from "@/components/Canvas/Preview";
-import { myFramesRoute } from "@/components/Navigation/routes";
+import { browseRoute } from "@/components/Navigation/routes";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -16,7 +16,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!frameEditor) {
-      router.push(myFramesRoute.path);
+      router.push(browseRoute.path);
     }
   }, [frameEditor, router]);
 

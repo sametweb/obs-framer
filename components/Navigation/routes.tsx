@@ -1,4 +1,4 @@
-import { FolderOpen, Home, LucideProps, Proportions, Type } from "lucide-react";
+import { FolderOpen, LucideProps, Proportions, Type } from "lucide-react";
 import { ForwardRefExoticComponent, RefAttributes } from "react";
 
 export type NavItem = {
@@ -9,11 +9,10 @@ export type NavItem = {
   path: string;
 };
 
-export const homeRoute: NavItem = { icon: Home, label: "Home", path: "/" };
-export const myFramesRoute: NavItem = {
+export const browseRoute: NavItem = {
   icon: FolderOpen,
-  label: "My frames",
-  path: "/my-frames",
+  label: "Browse",
+  path: "/browse",
 };
 export const editorRoute: NavItem = {
   icon: Proportions,

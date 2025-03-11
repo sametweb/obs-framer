@@ -4,7 +4,7 @@ import {
   isPointInResizeHandle,
   renderCanvas,
 } from "@/app/editor/utils";
-import { myFramesRoute } from "@/components/Navigation/routes";
+import { browseRoute } from "@/components/Navigation/routes";
 import { Button } from "@/components/ui/button";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
 import {
@@ -228,7 +228,7 @@ export default function Preview() {
 
   const handleXClick = () => {
     dispatch(closeFrameEditor());
-    router.push(myFramesRoute.path);
+    router.push(browseRoute.path);
   };
 
   const getMousePos = (e: React.MouseEvent) => {
