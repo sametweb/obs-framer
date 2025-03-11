@@ -403,6 +403,9 @@ export default function Preview() {
     setAddTextPopover(false);
   };
 
+  const onEditableTitleFocus: FocusEventHandler<HTMLHeadingElement> = (_) =>
+    setIsEditingTitle(true);
+
   return (
     <main className="flex-1 p-6 bg-background">
       <div className="max-w-screen-xl mx-auto">
@@ -415,7 +418,7 @@ export default function Preview() {
               })}
               contentEditable
               suppressContentEditableWarning
-              onFocus={(_) => setIsEditingTitle(true)}
+              onFocus={onEditableTitleFocus}
               onBlur={handleSaveTitle}
               onKeyDown={handleOnKeyDownWhenEditingTitle}
             >
