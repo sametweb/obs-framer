@@ -10,7 +10,7 @@ export function Navbar() {
         <Button variant="ghost" size="icon" className="mr-4 md:hidden">
           <Menu className="h-5 w-5" />
         </Button>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           <TvMinimalPlay className="h-6 w-6" />
           <h1 className="text-lg font-semibold">OBS Framer</h1>
         </div>
@@ -24,6 +24,7 @@ export function Navbar() {
           <Button variant="ghost" size="icon">
             <Settings className="h-5 w-5" />
           </Button>
+          <Button variant="ghost">Login</Button>
         </div>
       </div>
     </nav>
