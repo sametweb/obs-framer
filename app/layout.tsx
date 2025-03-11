@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClientLayout } from "./client-layout";
 import "./globals.css";
+import { headers } from "next/headers";
+import { Providers } from "./providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -18,6 +20,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // This forces the layout to be dynamic
+  headers();
+  
   return (
     <html lang="en">
       <head>
@@ -33,7 +38,9 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <ClientLayout>{children}</ClientLayout>
+        <Providers>
+          <ClientLayout>{children}</ClientLayout>
+        </Providers>
       </body>
     </html>
   );
