@@ -381,7 +381,12 @@ const drawFrameBorders = (
 };
 
 export interface LinearGradientSettings {
-  direction: "top-bottom" | "left-right" | "diagonal" | "diagonal-reverse";
+  direction:
+    | "top-bottom"
+    | "left-right"
+    | "diagonal"
+    | "diagonal-reverse"
+    | "radial";
   stops: GradientStop[];
 }
 
@@ -428,11 +433,30 @@ export const fillGradient = (
       x2 = 0;
       y2 = canvas.height;
       break;
+    case "radial":
+      x1 = canvas.width / 2;
+      y1 = canvas.height / 2;
+      x2 = canvas.width / 2;
+      y2 = canvas.height / 2;
+      break;
   }
 
-  const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
-  stops.forEach((stop) => gradient.addColorStop(stop.offset, stop.color));
-  ctx.fillStyle = gradient;
+  if (direction === "radial") {
+    const gradient = ctx.createRadialGradient(
+      x1,
+      y1,
+      0,
+      x2,
+      y2,
+      canvas.width / 2
+    );
+    stops.forEach((stop) => gradient.addColorStop(stop.offset, stop.color));
+    ctx.fillStyle = gradient;
+  } else {
+    const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+    stops.forEach((stop) => gradient.addColorStop(stop.offset, stop.color));
+    ctx.fillStyle = gradient;
+  }
 };
 
 export const getGradientStyle = (frameGradient: LinearGradientSettings) => {
@@ -456,6 +480,8 @@ export const getGradientStyle = (frameGradient: LinearGradientSettings) => {
       return `linear-gradient(135deg, ${gradientStops})`;
     case "diagonal-reverse":
       return `linear-gradient(-135deg, ${gradientStops})`;
+    case "radial":
+      return `radial-gradient(circle, ${gradientStops})`;
   }
 };
 

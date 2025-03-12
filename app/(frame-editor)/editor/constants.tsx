@@ -7,12 +7,12 @@ export const commonResolutions = [
   { name: "Full HD", width: 1920, height: 1080 },
   { name: "QHD", width: 2560, height: 1440 },
   { name: "4K UHD", width: 3840, height: 2160 },
+  { name: "Mobile", width: 1080, height: 1920 },
 ];
 
 export const defaultGradientStops = [
-  { offset: 0, color: "#c5f9d7" },
-  { offset: 0.5, color: "#f7d486" },
-  { offset: 1, color: "#f27a7d" },
+  { offset: 0, color: "#cc208e" },
+  { offset: 1, color: "#6713d2" },
 ];
 
 export const enum DirectionKey {
@@ -20,6 +20,7 @@ export const enum DirectionKey {
   LeftRight = "left-right",
   Diagonal = "diagonal",
   DiagonalReverse = "diagonal-reverse",
+  Radial = "radial",
 }
 
 export const directions = [
@@ -27,6 +28,7 @@ export const directions = [
   { key: DirectionKey.LeftRight, label: "Left to Right" },
   { key: DirectionKey.Diagonal, label: "Diagonal" },
   { key: DirectionKey.DiagonalReverse, label: "Reverse Diagonal" },
+  { key: DirectionKey.Radial, label: "Radial" },
 ] as const;
 
 export const defaultFrameGradient: LinearGradientSettings = {
