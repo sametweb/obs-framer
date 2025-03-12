@@ -3,7 +3,7 @@ import {
   isPointInLayer,
   isPointInResizeHandle,
   renderCanvas,
-} from "@/app/editor/utils";
+} from "@/app/(frame-editor)/editor/utils";
 import { browseRoute } from "@/components/Navigation/routes";
 import { Button } from "@/components/ui/button";
 import { useFrameEditor } from "@/hooks/use-frame-settings";

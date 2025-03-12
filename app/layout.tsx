@@ -1,9 +1,8 @@
 import { GOOGLE_FONTS } from "@/lib/fonts";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ClientLayout } from "./client-layout";
-import "./globals.css";
 import { headers } from "next/headers";
+import "./globals.css";
 import { Providers } from "./providers";
 
 const inter = Inter({
@@ -22,7 +21,7 @@ export default function RootLayout({
 }) {
   // This forces the layout to be dynamic
   headers();
-  
+
   return (
     <html lang="en">
       <head>
@@ -38,9 +37,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <Providers>
-          <ClientLayout>{children}</ClientLayout>
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

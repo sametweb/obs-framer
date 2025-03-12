@@ -1,4 +1,4 @@
-import { LinearGradientSettings } from "@/app/editor/utils";
+import { LinearGradientSettings } from "@/app/(frame-editor)/editor/utils";
 
 /**
  * Represents the state of the editor, including the collection of frame editors,

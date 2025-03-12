@@ -1,4 +1,4 @@
-import { defaultFrameEditor } from "@/app/editor/constants";
+import { defaultFrameEditor } from "@/app/(frame-editor)/editor/constants";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { v4 } from "uuid";
 import { EditorState, FrameEditor, Layer, TextLayer } from "../types";
