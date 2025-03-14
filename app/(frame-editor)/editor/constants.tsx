@@ -36,30 +36,21 @@ export const defaultFrameGradient: LinearGradientSettings = {
   stops: defaultGradientStops,
 };
 
-export const defaultWidth = 2560;
-export const defaultHeight = 1440;
-export const defaultFrameBorder = 50;
-export const defaultSpace = 20;
-export const defaultRadius = 10;
-export const defaultFrameCount = 1;
-export const frameInnerBorderWidth = 1;
-export const frameInnerBorderColor = "#000000";
-
 export const defaultFrameEditor = (): FrameEditor => ({
   id: "",
   documentName: "Untitled Document",
   frameGradient: defaultFrameGradient,
-  screenWidth: defaultWidth,
-  screenHeight: defaultHeight,
-  frameLeftWidth: defaultFrameBorder,
-  frameRightWidth: defaultFrameBorder,
-  frameTopWidth: defaultFrameBorder,
-  frameBottomWidth: defaultFrameBorder,
-  frameSpacing: defaultSpace,
-  frameRadius: defaultRadius,
-  frameCount: defaultFrameCount,
-  frameInnerBorderWidth: frameInnerBorderWidth,
-  frameInnerBorderColor: frameInnerBorderColor,
+  screenWidth: 2560,
+  screenHeight: 1440,
+  frameLeftWidth: 50,
+  frameRightWidth: 50,
+  frameTopWidth: 50,
+  frameBottomWidth: 50,
+  frameSpacing: 20,
+  frameRadius: 10,
+  frameCount: 0,
+  frameInnerBorderWidth: 1,
+  frameInnerBorderColor: "#000000",
   layers: [],
   createdAt: new Date().toISOString(),
   modifiedAt: new Date().toISOString(),
