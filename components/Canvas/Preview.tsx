@@ -11,6 +11,7 @@ import {
   addLayer,
   addTextLayer,
   closeFrameEditor,
+  deleteLayer,
   selectLayer,
   updateLayer,
 } from "@/lib/store/editorSlice";
@@ -73,6 +74,12 @@ export default function Preview() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!state.layerEditor) return;
+
+      if (e.key === "Delete") {
+        dispatch(deleteLayer(state.layerEditor.id));
+        dispatch(selectLayer(null));
+        return;
+      }
 
       const moveAmount = e.shiftKey ? 10 : 1;
       let dx = 0;
