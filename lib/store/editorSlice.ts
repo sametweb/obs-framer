@@ -113,6 +113,7 @@ const editorSlice = createSlice({
       );
       if (layer) {
         Object.assign(layer, action.payload.updates);
+        state.layerEditor = layer;
       }
     },
     deleteLayer: (state, action: PayloadAction<string>) => {
