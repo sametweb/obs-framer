@@ -5,11 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useFonts } from "@/hooks/use-fonts";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { updateLayer } from "@/lib/store/editorSlice";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { ImageLayer } from "@/lib/types";
+import { createThrottler } from "@/lib/utils";
+import { Lock, Unlock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function ImageEditSidebar() {
@@ -25,6 +33,10 @@ export function ImageEditSidebar() {
   );
   const [x, setX] = useState(selectedLayer ? selectedLayer.x : 0);
   const [y, setY] = useState(selectedLayer ? selectedLayer.y : 0);
+  const [lockAspectRatio, setLockAspectRatio] = useState(true);
+  const [aspectRatio, setAspectRatio] = useState(
+    selectedLayer ? selectedLayer.width / selectedLayer.height : 1
+  );
 
   useEffect(() => {
     if (selectedLayer) {
@@ -32,6 +44,7 @@ export function ImageEditSidebar() {
       setHeight(selectedLayer.height);
       setX(selectedLayer.x);
       setY(selectedLayer.y);
+      setAspectRatio(selectedLayer.width / selectedLayer.height);
     }
   }, [selectedLayer]);
 
@@ -60,6 +73,29 @@ export function ImageEditSidebar() {
       dispatch(updateLayer(updates));
     }
   };
+
+  const handleWidthChange = createThrottler((newWidth: number) => {
+    setWidth(newWidth);
+    if (lockAspectRatio) {
+      setHeight(Math.round(newWidth / aspectRatio));
+    } else {
+      setAspectRatio(newWidth / height);
+    }
+  }, 100);
+
+  const handleHeightChange = createThrottler((newHeight: number) => {
+    setHeight(newHeight);
+    if (lockAspectRatio) {
+      setWidth(Math.round(newHeight * aspectRatio));
+    } else {
+      setAspectRatio(width / newHeight);
+    }
+  }, 100);
+
+  const shouldDisableSizeSaveButton =
+    width === selectedLayer.width && height === selectedLayer.height;
+  const shouldDisablePositionSaveButton =
+    x === selectedLayer.x && y === selectedLayer.y;
 
   return (
     <aside className="w-[300px] border-r bg-background">
@@ -100,7 +136,12 @@ export function ImageEditSidebar() {
                     }}
                   />
                 </div>
-                <Button onClick={onPositionSave}>Save</Button>
+                <Button
+                  onClick={onPositionSave}
+                  disabled={shouldDisablePositionSaveButton}
+                >
+                  Save
+                </Button>
               </div>
             </div>
             <div>
@@ -114,13 +155,33 @@ export function ImageEditSidebar() {
                     id="width"
                     type="number"
                     placeholder="Width"
+                    min={1}
                     value={width}
                     onChange={(e) => {
                       const newWidth = parseInt(e.target.value);
-                      setWidth(newWidth);
+                      handleWidthChange(newWidth);
                     }}
                   />
                 </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger
+                      className="h-5 w-5 mb-3"
+                      onClick={() => setLockAspectRatio(!lockAspectRatio)}
+                    >
+                      {lockAspectRatio ? (
+                        <Lock className="h-3 w-3" />
+                      ) : (
+                        <Unlock className="h-3 w-3" />
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {lockAspectRatio
+                        ? "Unlock aspect ratio"
+                        : "Lock aspect ratio"}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <div>
                   <Label className="text-xs" htmlFor="height">
                     Height
@@ -129,14 +190,20 @@ export function ImageEditSidebar() {
                     id="height"
                     type="number"
                     placeholder="Height"
+                    min={1}
                     value={height}
                     onChange={(e) => {
                       const newHeight = parseInt(e.target.value);
-                      setHeight(newHeight);
+                      handleHeightChange(newHeight);
                     }}
                   />
                 </div>
-                <Button onClick={onSizeSave}>Save</Button>
+                <Button
+                  onClick={onSizeSave}
+                  disabled={shouldDisableSizeSaveButton}
+                >
+                  Save
+                </Button>
               </div>
             </div>
           </div>

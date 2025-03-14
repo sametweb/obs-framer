@@ -33,3 +33,36 @@ export const deepCompare = <T extends Record<string, any>>(
 
   return true;
 };
+
+export function createThrottler<T extends any[]>(
+  callback: (...args: T) => void,
+  delay: number = 100
+): (...args: T) => void {
+  let lastCall = 0;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  return function throttledFunction(...args: T): void {
+    const now = Date.now();
+    const timeSinceLastCall = now - lastCall;
+
+    if (timeSinceLastCall >= delay) {
+      // Execute immediately if enough time has passed
+      lastCall = now;
+      callback(...args);
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    } else {
+      // Schedule execution for the next available time slot
+      if (timeoutId === null) {
+        const remainingTime = delay - timeSinceLastCall;
+        timeoutId = setTimeout(() => {
+          lastCall = Date.now();
+          callback(...args);
+          timeoutId = null;
+        }, remainingTime);
+      }
+    }
+  };
+}
