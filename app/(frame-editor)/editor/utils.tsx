@@ -179,15 +179,6 @@ const drawTextLayer = (
       metrics.width + 8,
       height + 8
     );
-
-    ctx.fillStyle = "#0066ff";
-    ctx.font = "12px Inter";
-    ctx.setLineDash([]);
-    ctx.fillText(
-      `(${Math.round(layer.x)}, ${Math.round(layer.y)})`,
-      layer.x,
-      layer.y + 20
-    );
   }
 
   ctx.restore();
@@ -233,15 +224,6 @@ const drawImageLayer = async (
       ctx.fillRect(handle.x, handle.y, handleSize, handleSize);
       ctx.strokeRect(handle.x, handle.y, handleSize, handleSize);
     });
-
-    // Draw coordinates
-    ctx.fillStyle = "#0066ff";
-    ctx.font = "12px Inter";
-    ctx.fillText(
-      `(${Math.round(layer.x)}, ${Math.round(layer.y)})`,
-      layer.x,
-      layer.y + layer.height + 20
-    );
   }
 
   ctx.restore();
