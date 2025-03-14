@@ -14,7 +14,11 @@ import { Slider } from "@/components/ui/slider";
 import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { ArrowLeftRight, Plus, Trash2 } from "lucide-react";
-import { commonResolutions, directions } from "./constants";
+import {
+  availableGradientStops,
+  commonResolutions,
+  directions,
+} from "./constants";
 import {
   getGradientStyle,
   GradientStop,
@@ -106,6 +110,18 @@ export default function FrameEditSidebar() {
     updateStop(index, {
       offset: Math.max(0, Math.min(1, Number(e.target.value) / 100)),
     });
+
+  const handleGradientPresetChange = (presetName: string) => {
+    const preset = availableGradientStops.find((g) => g.name === presetName);
+    if (preset) {
+      updateFrameEditor({
+        frameGradient: {
+          ...frameGradient,
+          stops: preset.stops,
+        },
+      });
+    }
+  };
 
   const isSolidColor = frameGradient.stops.length === 1;
 
@@ -413,6 +429,33 @@ export default function FrameEditSidebar() {
                           </Button>
                         </div>
                       ))}
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label>Gradient presets</Label>
+                      <Select onValueChange={handleGradientPresetChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Presets" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableGradientStops.map((preset) => (
+                            <SelectItem key={preset.name} value={preset.name}>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className="w-10 h-6 rounded"
+                                  style={{
+                                    background: getGradientStyle({
+                                      direction: frameGradient.direction,
+                                      stops: preset.stops,
+                                    }),
+                                  }}
+                                />
+                                <span>{preset.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
