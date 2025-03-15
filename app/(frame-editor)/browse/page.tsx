@@ -59,7 +59,7 @@ export default function Home() {
       <main className="flex-1 p-6 bg-background">
         <div className="max-w-screen-xl mx-auto h-full">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">My frames </h2>
+            <h2 className="text-lg font-semibold">My frames</h2>
             <Button onClick={onAddNewClick}>
               Add new <Plus className="w-4 h-4 ml-2" />
             </Button>

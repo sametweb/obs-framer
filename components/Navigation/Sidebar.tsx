@@ -9,6 +9,7 @@ import {
 import { useFrameEditor } from "@/hooks/use-frame-settings";
 import { cn } from "@/lib/utils";
 import { HelpCircle, Settings } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -23,6 +24,7 @@ const bottomNavItems: NavItem[] = [
 ];
 
 export function Sidebar() {
+  const { data: session } = useSession();
   const pathname = usePathname();
   const { frameEditor } = useFrameEditor();
   const [navItems, setNavItems] = useState(defaultNavItems);
@@ -34,6 +36,10 @@ export function Sidebar() {
       setNavItems(defaultNavItems);
     }
   }, [pathname, frameEditor]);
+
+  if (!session) {
+    return null; // Don't render the sidebar if the user is not authenticated
+  }
 
   return (
     <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-16 border-r bg-background z-40">
